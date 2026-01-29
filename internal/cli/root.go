@@ -116,4 +116,5 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 	rootCmd.AddCommand(attachCmd)
 	rootCmd.AddCommand(prjCmd)
+	rootCmd.AddCommand(killCmd)
 }

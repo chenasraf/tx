@@ -2,6 +2,7 @@ package tmux
 
 import (
 	"os"
+	"strings"
 
 	"github.com/chenasraf/tx/internal/exec"
 )
@@ -30,4 +31,25 @@ func AttachToSession(opts exec.Opts, sessionName string) error {
 func ListSessions(opts exec.Opts) (string, error) {
 	output, _, err := exec.GetCommandOutput(opts, "tmux ls")
 	return output, err
+}
+
+// GetSessionNames returns a list of running tmux session names
+func GetSessionNames() []string {
+	output, _, err := exec.GetCommandOutputSilent("tmux list-sessions -F '#{session_name}'")
+	if err != nil {
+		return nil
+	}
+
+	var names []string
+	for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
+		if line != "" {
+			names = append(names, line)
+		}
+	}
+	return names
+}
+
+// KillSession kills a tmux session by name
+func KillSession(opts exec.Opts, sessionName string) error {
+	return exec.RunCommand(opts, "tmux kill-session -t "+sessionName)
 }

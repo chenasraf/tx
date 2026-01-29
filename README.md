@@ -88,6 +88,10 @@ tx attach [name]
 # Remove a configuration
 tx rm <name>
 tx rm <name> -l       # remove from local config
+
+# Kill a running session
+tx kill               # kill current session
+tx kill <name>        # kill specific session
 ```
 
 ### Global Flags
