@@ -47,7 +47,8 @@ go install github.com/chenasraf/tx@latest
 ```bash
 git clone https://github.com/chenasraf/tx.git
 cd tx
-go build -o tx .
+make build # build only
+make install # build & install to ~/.local/bin
 ```
 
 ---
