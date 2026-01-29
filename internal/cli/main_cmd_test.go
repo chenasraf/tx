@@ -9,9 +9,11 @@ import (
 func TestRunMain_NoConfig(t *testing.T) {
 	// Create a temp directory with no config
 	tmpDir := t.TempDir()
-	oldWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(oldWd) }()
-	_ = os.Chdir(tmpDir)
+
+	// Set XDG_CONFIG_HOME to temp directory (which has no config)
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
 	// Set dry mode to prevent actual tmux operations
 	dry = true
@@ -40,9 +42,10 @@ testproject:
 		t.Fatalf("failed to write temp config: %v", err)
 	}
 
-	oldWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(oldWd) }()
-	_ = os.Chdir(tmpDir)
+	// Set XDG_CONFIG_HOME to temp directory so config is found
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
 	// Set dry mode
 	dry = true
@@ -69,9 +72,10 @@ existingproject:
 		t.Fatalf("failed to write temp config: %v", err)
 	}
 
-	oldWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(oldWd) }()
-	_ = os.Chdir(tmpDir)
+	// Set XDG_CONFIG_HOME to temp directory so config is found
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
 	dry = true
 	defer func() { dry = false }()

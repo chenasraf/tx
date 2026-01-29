@@ -30,22 +30,29 @@ var ErrNoConfigFound = errors.New("no config file found")
 
 // searchDirs returns the directories to search for config files
 func searchDirs() []string {
-	dirs := []string{
-		mustGetwd(),
-	}
-
-	// Add executable directory
-	if execPath, err := os.Executable(); err == nil {
-		dirs = append(dirs, filepath.Dir(execPath))
-	}
+	var dirs []string
 
 	// Add home directory
-	if home, err := os.UserHomeDir(); err == nil {
+	home, err := os.UserHomeDir()
+	if err == nil {
 		dirs = append(dirs, home)
-		dirs = append(dirs, filepath.Join(home, ".dotfiles"))
 	}
 
-	// Add APPDATA if set
+	// Add XDG config directory
+	xdgConfig := os.Getenv("XDG_CONFIG_HOME")
+	if xdgConfig != "" {
+		dirs = append(dirs, xdgConfig)
+	}
+
+	// Add ~/.config as fallback (only if different from XDG_CONFIG_HOME)
+	if home != "" {
+		dotConfig := filepath.Join(home, ".config")
+		if dotConfig != xdgConfig {
+			dirs = append(dirs, dotConfig)
+		}
+	}
+
+	// Add APPDATA if set (Windows)
 	if appdata := os.Getenv("APPDATA"); appdata != "" {
 		dirs = append(dirs, appdata)
 	}
@@ -53,21 +60,13 @@ func searchDirs() []string {
 	return dirs
 }
 
-func mustGetwd() string {
-	wd, err := os.Getwd()
-	if err != nil {
-		return "."
-	}
-	return wd
-}
-
 // searchPatterns returns the file patterns to search for a given name
 func searchPatterns(name string) []string {
 	return []string{
+		name + ".yaml",
+		name + ".yml",
 		"." + name + ".yaml",
 		"." + name + ".yml",
-		filepath.Join(".config", "."+name+".yaml"),
-		filepath.Join(".config", "."+name+".yml"),
 	}
 }
 

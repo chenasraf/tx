@@ -103,16 +103,15 @@ tx rm <name> -l       # remove from local config
 
 tx searches for configuration files in these locations (in order):
 
-1. Current working directory
-2. Executable directory
-3. Home directory (`~`)
-4. `~/.dotfiles`
-5. `$APPDATA` (if set)
+1. Home directory (`~`)
+2. `$XDG_CONFIG_HOME` (if set)
+3. `~/.config`
+4. `%APPDATA%` (Windows, if set)
 
 File patterns searched:
 
+- `tmux.yaml` / `tmux.yml`
 - `.tmux.yaml` / `.tmux.yml`
-- `.config/.tmux.yaml` / `.config/.tmux.yml`
 
 Local config files (`.tmux_local.yaml`) are merged with global config, with local values taking
 precedence.

@@ -10,10 +10,10 @@ func TestSearchPatterns(t *testing.T) {
 	patterns := searchPatterns("tmux")
 
 	expected := []string{
+		"tmux.yaml",
+		"tmux.yml",
 		".tmux.yaml",
 		".tmux.yml",
-		filepath.Join(".config", ".tmux.yaml"),
-		filepath.Join(".config", ".tmux.yml"),
 	}
 
 	if len(patterns) != len(expected) {
@@ -35,23 +35,23 @@ func TestSearchDirs(t *testing.T) {
 		t.Error("expected at least one search directory")
 	}
 
-	// First dir should be current working directory
-	cwd, _ := os.Getwd()
-	if dirs[0] != cwd {
-		t.Errorf("expected first dir to be cwd %q, got %q", cwd, dirs[0])
+	// First dir should be home directory
+	home, _ := os.UserHomeDir()
+	if dirs[0] != home {
+		t.Errorf("expected first dir to be home %q, got %q", home, dirs[0])
 	}
 
-	// Should contain home directory
-	home, _ := os.UserHomeDir()
+	// Should contain ~/.config
+	dotConfig := filepath.Join(home, ".config")
 	found := false
 	for _, d := range dirs {
-		if d == home {
+		if d == dotConfig {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Error("expected search dirs to contain home directory")
+		t.Error("expected search dirs to contain ~/.config")
 	}
 }
 
@@ -295,10 +295,10 @@ testproject:
 		t.Fatalf("failed to write temp config: %v", err)
 	}
 
-	// Change to temp directory
-	oldWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(oldWd) }()
-	_ = os.Chdir(tmpDir)
+	// Set XDG_CONFIG_HOME to temp directory so it's in the search path
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
 	result, err := findConfigFile("tmux")
 	if err != nil {

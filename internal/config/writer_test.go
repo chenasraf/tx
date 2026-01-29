@@ -65,10 +65,10 @@ existing:
 		t.Fatalf("failed to write temp config: %v", err)
 	}
 
-	// Change to temp directory so config is found
-	oldWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(oldWd) }()
-	_ = os.Chdir(tmpDir)
+	// Set XDG_CONFIG_HOME to temp directory so config is found
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
 	config := ParsedTmuxConfigItem{
 		Name: "newproject",
@@ -104,10 +104,10 @@ func TestAddSimpleConfigToFile(t *testing.T) {
 		t.Fatalf("failed to write temp config: %v", err)
 	}
 
-	// Change to temp directory so config is found
-	oldWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(oldWd) }()
-	_ = os.Chdir(tmpDir)
+	// Set XDG_CONFIG_HOME to temp directory so config is found
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
 	config := ParsedTmuxConfigItem{
 		Name: "newproject",
@@ -159,10 +159,10 @@ third:
 		t.Fatalf("failed to write temp config: %v", err)
 	}
 
-	// Change to temp directory so config is found
-	oldWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(oldWd) }()
-	_ = os.Chdir(tmpDir)
+	// Set XDG_CONFIG_HOME to temp directory so config is found
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
 	err = RemoveConfigFromFile("second", false, false)
 	if err != nil {
@@ -197,10 +197,10 @@ func TestRemoveConfigFromFile_NotFound(t *testing.T) {
 		t.Fatalf("failed to write temp config: %v", err)
 	}
 
-	// Change to temp directory so config is found
-	oldWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(oldWd) }()
-	_ = os.Chdir(tmpDir)
+	// Set XDG_CONFIG_HOME to temp directory so config is found
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
 	err = RemoveConfigFromFile("nonexistent", false, false)
 	if err == nil {
@@ -221,10 +221,10 @@ func TestRemoveConfigFromFile_DryRun(t *testing.T) {
 		t.Fatalf("failed to write temp config: %v", err)
 	}
 
-	// Change to temp directory so config is found
-	oldWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(oldWd) }()
-	_ = os.Chdir(tmpDir)
+	// Set XDG_CONFIG_HOME to temp directory so config is found
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
 	err = RemoveConfigFromFile("toremove", false, true)
 	if err != nil {
@@ -257,10 +257,10 @@ last:
 		t.Fatalf("failed to write temp config: %v", err)
 	}
 
-	// Change to temp directory so config is found
-	oldWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(oldWd) }()
-	_ = os.Chdir(tmpDir)
+	// Set XDG_CONFIG_HOME to temp directory so config is found
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
 	err = RemoveConfigFromFile("last", false, false)
 	if err != nil {
