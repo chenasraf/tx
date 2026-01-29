@@ -52,6 +52,29 @@ It supports complex pane layouts, fzf selection, and config merging.`,
 	RunE:              runMain,
 	SilenceErrors:     true, // We handle error printing in Execute()
 	SilenceUsage:      true, // Don't print usage on runtime errors
+	ValidArgsFunction: completeSessionNames,
+}
+
+// completeSessionNames returns session names for shell completion
+func completeSessionNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	// Don't complete if we already have an argument
+	if len(args) > 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	cfg, err := config.GetTmuxConfig()
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	var names []string
+	for name := range cfg {
+		if name != config.ConfigKey {
+			names = append(names, name)
+		}
+	}
+
+	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
 // initConfig loads global configuration and applies settings

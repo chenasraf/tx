@@ -11,11 +11,12 @@ import (
 var removeLocal bool
 
 var removeCmd = &cobra.Command{
-	Use:     "remove <key>",
-	Aliases: []string{"rm"},
-	Short:   "Remove a tmux workspace from the config file",
-	Args:    cobra.ExactArgs(1),
-	RunE:    runRemove,
+	Use:               "remove <key>",
+	Aliases:           []string{"rm"},
+	Short:             "Remove a tmux workspace from the config file",
+	Args:              cobra.ExactArgs(1),
+	RunE:              runRemove,
+	ValidArgsFunction: completeSessionNames,
 }
 
 func init() {

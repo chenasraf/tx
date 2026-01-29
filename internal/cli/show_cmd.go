@@ -12,11 +12,12 @@ import (
 var showJSON bool
 
 var showCmd = &cobra.Command{
-	Use:     "show [key]",
-	Aliases: []string{"s"},
-	Short:   "Show the tmux configuration for a specific key",
-	Args:    cobra.MaximumNArgs(1),
-	RunE:    runShow,
+	Use:               "show [key]",
+	Aliases:           []string{"s"},
+	Short:             "Show the tmux configuration for a specific key",
+	Args:              cobra.MaximumNArgs(1),
+	RunE:              runShow,
+	ValidArgsFunction: completeSessionNames,
 }
 
 func init() {

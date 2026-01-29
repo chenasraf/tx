@@ -10,11 +10,12 @@ import (
 )
 
 var attachCmd = &cobra.Command{
-	Use:     "attach [key]",
-	Aliases: []string{"a"},
-	Short:   "Attach to a tmux session",
-	Args:    cobra.MaximumNArgs(1),
-	RunE:    runAttach,
+	Use:               "attach [key]",
+	Aliases:           []string{"a"},
+	Short:             "Attach to a tmux session",
+	Args:              cobra.MaximumNArgs(1),
+	RunE:              runAttach,
+	ValidArgsFunction: completeSessionNames,
 }
 
 func runAttach(cmd *cobra.Command, args []string) error {
