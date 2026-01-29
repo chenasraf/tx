@@ -23,7 +23,7 @@ A tmux session manager that creates sessions from YAML configuration files.
 
 ### Download Precompiled Binaries
 
-Precompiled binaries for `tx` are available for **Linux** and **macOS**:
+Precompiled binaries for `tx` are available for **Linux**, **macOS** and **Windows**:
 
 - Visit the [Releases Page](https://github.com/chenasraf/tx/releases/latest) to download the latest
   version for your platform.
