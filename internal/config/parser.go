@@ -112,8 +112,8 @@ func parseWindow(w TmuxWindowInput, root string) ParsedTmuxWindow {
 func parseLayout(layoutInput *TmuxLayoutInput, root string) TmuxPaneLayout {
 	if layoutInput == nil {
 		return TmuxPaneLayout{
-			Cwd:  resolvePath(root, "."),
-			Zoom: DefaultEmptyLayout.Zoom,
+			Cwd:   resolvePath(root, "."),
+			Zoom:  DefaultEmptyLayout.Zoom,
 			Split: copyTmuxSplitLayout(DefaultEmptyLayout.Split, root),
 		}
 	}

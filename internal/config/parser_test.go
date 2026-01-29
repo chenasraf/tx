@@ -15,7 +15,7 @@ func TestNameFix(t *testing.T) {
 		{"foo", "foo"},
 		{"foo.bar", "foo"},
 		{"foo.bar.baz", "foo"},
-		{".hidden", "hidden"},  // .hidden splits to ["", "hidden"], first non-empty is "hidden"
+		{".hidden", "hidden"}, // .hidden splits to ["", "hidden"], first non-empty is "hidden"
 		{"", ""},
 		{"noextension", "noextension"},
 	}

@@ -67,8 +67,8 @@ existing:
 
 	// Change to temp directory so config is found
 	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldWd) }()
+	_ = os.Chdir(tmpDir)
 
 	config := ParsedTmuxConfigItem{
 		Name: "newproject",
@@ -106,8 +106,8 @@ func TestAddSimpleConfigToFile(t *testing.T) {
 
 	// Change to temp directory so config is found
 	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldWd) }()
+	_ = os.Chdir(tmpDir)
 
 	config := ParsedTmuxConfigItem{
 		Name: "newproject",
@@ -161,8 +161,8 @@ third:
 
 	// Change to temp directory so config is found
 	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldWd) }()
+	_ = os.Chdir(tmpDir)
 
 	err = RemoveConfigFromFile("second", false, false)
 	if err != nil {
@@ -199,8 +199,8 @@ func TestRemoveConfigFromFile_NotFound(t *testing.T) {
 
 	// Change to temp directory so config is found
 	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldWd) }()
+	_ = os.Chdir(tmpDir)
 
 	err = RemoveConfigFromFile("nonexistent", false, false)
 	if err == nil {
@@ -223,8 +223,8 @@ func TestRemoveConfigFromFile_DryRun(t *testing.T) {
 
 	// Change to temp directory so config is found
 	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldWd) }()
+	_ = os.Chdir(tmpDir)
 
 	err = RemoveConfigFromFile("toremove", false, true)
 	if err != nil {
@@ -259,8 +259,8 @@ last:
 
 	// Change to temp directory so config is found
 	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldWd) }()
+	_ = os.Chdir(tmpDir)
 
 	err = RemoveConfigFromFile("last", false, false)
 	if err != nil {

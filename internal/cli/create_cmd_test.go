@@ -30,7 +30,7 @@ func TestCreateCmd_Aliases(t *testing.T) {
 func TestCreateCmd_Flags(t *testing.T) {
 	rootDirFlag := createCmd.Flags().Lookup("root-dir")
 	if rootDirFlag == nil {
-		t.Error("expected --root-dir flag")
+		t.Fatal("expected --root-dir flag")
 	}
 	if rootDirFlag.Shorthand != "r" {
 		t.Errorf("expected -r shorthand, got %q", rootDirFlag.Shorthand)
@@ -38,7 +38,7 @@ func TestCreateCmd_Flags(t *testing.T) {
 
 	windowFlag := createCmd.Flags().Lookup("window")
 	if windowFlag == nil {
-		t.Error("expected --window flag")
+		t.Fatal("expected --window flag")
 	}
 	if windowFlag.Shorthand != "w" {
 		t.Errorf("expected -w shorthand, got %q", windowFlag.Shorthand)
@@ -46,7 +46,7 @@ func TestCreateCmd_Flags(t *testing.T) {
 
 	saveFlag := createCmd.Flags().Lookup("save")
 	if saveFlag == nil {
-		t.Error("expected --save flag")
+		t.Fatal("expected --save flag")
 	}
 	if saveFlag.Shorthand != "s" {
 		t.Errorf("expected -s shorthand, got %q", saveFlag.Shorthand)
@@ -54,7 +54,7 @@ func TestCreateCmd_Flags(t *testing.T) {
 
 	saveOnlyFlag := createCmd.Flags().Lookup("save-only")
 	if saveOnlyFlag == nil {
-		t.Error("expected --save-only flag")
+		t.Fatal("expected --save-only flag")
 	}
 	if saveOnlyFlag.Shorthand != "S" {
 		t.Errorf("expected -S shorthand, got %q", saveOnlyFlag.Shorthand)
@@ -62,7 +62,7 @@ func TestCreateCmd_Flags(t *testing.T) {
 
 	localFlag := createCmd.Flags().Lookup("local")
 	if localFlag == nil {
-		t.Error("expected --local flag")
+		t.Fatal("expected --local flag")
 	}
 	if localFlag.Shorthand != "l" {
 		t.Errorf("expected -l shorthand, got %q", localFlag.Shorthand)

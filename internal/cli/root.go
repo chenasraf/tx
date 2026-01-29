@@ -47,6 +47,8 @@ It supports complex pane layouts, fzf selection, and config merging.`,
 	Args:              cobra.MaximumNArgs(1),
 	PersistentPreRunE: initConfig,
 	RunE:              runMain,
+	SilenceErrors:     true, // We handle error printing in Execute()
+	SilenceUsage:      true, // Don't print usage on runtime errors
 }
 
 // initConfig loads global configuration and applies settings
@@ -65,11 +67,7 @@ func initConfig(cmd *cobra.Command, args []string) error {
 // Execute adds all child commands to the root command and sets flags appropriately
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		if _, ok := err.(*UserError); ok {
-			fmt.Fprintln(os.Stderr, "Error:", err.Error())
-		} else {
-			fmt.Fprintln(os.Stderr, err)
-		}
+		fmt.Fprintln(os.Stderr, "Error:", err.Error())
 		os.Exit(1)
 	}
 }

@@ -67,9 +67,11 @@ func AddSimpleConfigToFile(config ParsedTmuxConfigItem, local bool, dryRun bool)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 
 	_, err = f.WriteString(sb.String())
+	if closeErr := f.Close(); err == nil {
+		err = closeErr
+	}
 	return err
 }
 

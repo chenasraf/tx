@@ -19,10 +19,10 @@ func TestSessionExists_DryMode(t *testing.T) {
 func TestAttachToSession_InsideTmux(t *testing.T) {
 	// Save original TMUX env
 	origTmux := os.Getenv("TMUX")
-	defer os.Setenv("TMUX", origTmux)
+	defer func() { _ = os.Setenv("TMUX", origTmux) }()
 
 	// Set TMUX to simulate being inside tmux
-	os.Setenv("TMUX", "/tmp/tmux-1000/default,12345,0")
+	_ = os.Setenv("TMUX", "/tmp/tmux-1000/default,12345,0")
 
 	opts := exec.Opts{Verbose: false, Dry: true}
 	err := AttachToSession(opts, "testsession")
@@ -36,10 +36,10 @@ func TestAttachToSession_InsideTmux(t *testing.T) {
 func TestAttachToSession_OutsideTmux(t *testing.T) {
 	// Save original TMUX env
 	origTmux := os.Getenv("TMUX")
-	defer os.Setenv("TMUX", origTmux)
+	defer func() { _ = os.Setenv("TMUX", origTmux) }()
 
 	// Unset TMUX to simulate being outside tmux
-	os.Unsetenv("TMUX")
+	_ = os.Unsetenv("TMUX")
 
 	opts := exec.Opts{Verbose: false, Dry: true}
 	err := AttachToSession(opts, "testsession")

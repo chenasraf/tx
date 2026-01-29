@@ -34,7 +34,7 @@ func TestListCmd_Aliases(t *testing.T) {
 func TestListCmd_Flags(t *testing.T) {
 	bareFlag := listCmd.Flags().Lookup("bare")
 	if bareFlag == nil {
-		t.Error("expected --bare flag")
+		t.Fatal("expected --bare flag")
 	}
 	if bareFlag.Shorthand != "b" {
 		t.Errorf("expected -b shorthand, got %q", bareFlag.Shorthand)
@@ -42,7 +42,7 @@ func TestListCmd_Flags(t *testing.T) {
 
 	sessionsFlag := listCmd.Flags().Lookup("sessions")
 	if sessionsFlag == nil {
-		t.Error("expected --sessions flag")
+		t.Fatal("expected --sessions flag")
 	}
 	if sessionsFlag.Shorthand != "s" {
 		t.Errorf("expected -s shorthand, got %q", sessionsFlag.Shorthand)

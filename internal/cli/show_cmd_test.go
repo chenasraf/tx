@@ -33,7 +33,7 @@ func TestShowCmd_Aliases(t *testing.T) {
 func TestShowCmd_Flags(t *testing.T) {
 	jsonFlag := showCmd.Flags().Lookup("json")
 	if jsonFlag == nil {
-		t.Error("expected --json flag")
+		t.Fatal("expected --json flag")
 	}
 	if jsonFlag.Shorthand != "j" {
 		t.Errorf("expected -j shorthand, got %q", jsonFlag.Shorthand)

@@ -10,8 +10,8 @@ func TestRunMain_NoConfig(t *testing.T) {
 	// Create a temp directory with no config
 	tmpDir := t.TempDir()
 	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldWd) }()
+	_ = os.Chdir(tmpDir)
 
 	// Set dry mode to prevent actual tmux operations
 	dry = true
@@ -41,8 +41,8 @@ testproject:
 	}
 
 	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldWd) }()
+	_ = os.Chdir(tmpDir)
 
 	// Set dry mode
 	dry = true
@@ -70,8 +70,8 @@ existingproject:
 	}
 
 	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldWd) }()
+	_ = os.Chdir(tmpDir)
 
 	dry = true
 	defer func() { dry = false }()

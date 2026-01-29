@@ -33,7 +33,7 @@ func TestPrjCmd_Aliases(t *testing.T) {
 func TestPrjCmd_Flags(t *testing.T) {
 	saveFlag := prjCmd.Flags().Lookup("save")
 	if saveFlag == nil {
-		t.Error("expected --save flag")
+		t.Fatal("expected --save flag")
 	}
 	if saveFlag.Shorthand != "s" {
 		t.Errorf("expected -s shorthand, got %q", saveFlag.Shorthand)
@@ -41,7 +41,7 @@ func TestPrjCmd_Flags(t *testing.T) {
 
 	localFlag := prjCmd.Flags().Lookup("local")
 	if localFlag == nil {
-		t.Error("expected --local flag")
+		t.Fatal("expected --local flag")
 	}
 	if localFlag.Shorthand != "l" {
 		t.Errorf("expected -l shorthand, got %q", localFlag.Shorthand)

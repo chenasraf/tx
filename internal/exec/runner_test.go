@@ -159,8 +159,8 @@ func TestGetShell_Default(t *testing.T) {
 
 	// Unset env var
 	oldEnv := os.Getenv("SHELL")
-	os.Unsetenv("SHELL")
-	defer os.Setenv("SHELL", oldEnv)
+	_ = os.Unsetenv("SHELL")
+	defer func() { _ = os.Setenv("SHELL", oldEnv) }()
 
 	shell := getShell()
 	// Should return one of the default shells or "sh"
@@ -177,8 +177,8 @@ func TestGetShell_EnvVar(t *testing.T) {
 
 	// Set env var
 	oldEnv := os.Getenv("SHELL")
-	os.Setenv("SHELL", "/custom/shell")
-	defer os.Setenv("SHELL", oldEnv)
+	_ = os.Setenv("SHELL", "/custom/shell")
+	defer func() { _ = os.Setenv("SHELL", oldEnv) }()
 
 	shell := getShell()
 	if shell != "/custom/shell" {
@@ -194,8 +194,8 @@ func TestGetShell_ConfigOverridesEnv(t *testing.T) {
 
 	// Set env var too
 	oldEnv := os.Getenv("SHELL")
-	os.Setenv("SHELL", "/env/shell")
-	defer os.Setenv("SHELL", oldEnv)
+	_ = os.Setenv("SHELL", "/env/shell")
+	defer func() { _ = os.Setenv("SHELL", oldEnv) }()
 
 	shell := getShell()
 	// Config should take priority over env

@@ -30,7 +30,7 @@ func TestEditCmd_Aliases(t *testing.T) {
 func TestEditCmd_Flags(t *testing.T) {
 	localFlag := editCmd.Flags().Lookup("local")
 	if localFlag == nil {
-		t.Error("expected --local flag")
+		t.Fatal("expected --local flag")
 	}
 	if localFlag.Shorthand != "l" {
 		t.Errorf("expected -l shorthand, got %q", localFlag.Shorthand)

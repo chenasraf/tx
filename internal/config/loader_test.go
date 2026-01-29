@@ -297,8 +297,8 @@ testproject:
 
 	// Change to temp directory
 	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldWd) }()
+	_ = os.Chdir(tmpDir)
 
 	result, err := findConfigFile("tmux")
 	if err != nil {
