@@ -120,6 +120,10 @@ File patterns searched:
 Local config files (`.tmux_local.yaml`) are merged with global config, with local values taking
 precedence.
 
+Local configs are useful for setups where a global config is shared among computers, and you want
+per-computer configs which might be gitignored. This allows you to not check-in your local configs
+while also being able to share a config that might be checked into git.
+
 ### Configuration Format
 
 ```yaml
