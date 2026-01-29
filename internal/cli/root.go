@@ -90,6 +90,10 @@ func initConfig(cmd *cobra.Command, args []string) error {
 		if globalConfig.DefaultLayout != nil {
 			config.ConfiguredDefaultLayout = globalConfig.DefaultLayout
 		}
+		// Apply named layouts from config
+		if globalConfig.NamedLayouts != nil {
+			config.ConfiguredNamedLayouts = globalConfig.NamedLayouts
+		}
 	}
 	return nil
 }

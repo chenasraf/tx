@@ -255,6 +255,7 @@ myproject:
 | `shell`          | Shell to use for command execution                |
 | `projects_path`  | Directory for `tx prj` command (required for prj) |
 | `default_layout` | Default pane layout for new windows (see below)   |
+| `named_layouts`  | Reusable named layouts (see below)                |
 
 #### Default Layout
 
@@ -292,6 +293,36 @@ Example - horizontal split with vertical sub-split (default):
           child:
             cwd: .
             clock: true
+```
+
+#### Named Layouts
+
+Define reusable layouts that can be referenced by name in session configurations:
+
+```yaml
+.config:
+  named_layouts:
+    dev:
+      cwd: .
+      cmd: npm run dev
+      split:
+        direction: h
+        child:
+          cwd: .
+          cmd: npm run test:watch
+    simple:
+      cwd: .
+      clock: true
+
+myproject:
+  root: ~/Dev/myproject
+  windows:
+    - name: main
+      cwd: .
+      layout: dev      # references the "dev" named layout
+    - name: logs
+      cwd: ./logs
+      layout: simple   # references the "simple" named layout
 ```
 
 #### Shell Resolution Order

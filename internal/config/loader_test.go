@@ -281,6 +281,196 @@ func TestMergeConfigs_SkipsConfigSection(t *testing.T) {
 	}
 }
 
+func TestMergeGlobalConfigs(t *testing.T) {
+	config1 := &GlobalConfig{
+		Shell:        "/bin/bash",
+		ProjectsPath: "/old/path",
+	}
+
+	config2 := &GlobalConfig{
+		Shell: "/bin/zsh",
+	}
+
+	merged := mergeGlobalConfigs(config1, config2)
+
+	// Shell should be overridden by config2
+	if merged.Shell != "/bin/zsh" {
+		t.Errorf("expected Shell to be '/bin/zsh', got %q", merged.Shell)
+	}
+
+	// ProjectsPath should be preserved from config1
+	if merged.ProjectsPath != "/old/path" {
+		t.Errorf("expected ProjectsPath to be '/old/path', got %q", merged.ProjectsPath)
+	}
+}
+
+func TestMergeGlobalConfigs_Nil(t *testing.T) {
+	config1 := &GlobalConfig{
+		Shell: "/bin/bash",
+	}
+
+	merged := mergeGlobalConfigs(nil, config1, nil)
+
+	if merged.Shell != "/bin/bash" {
+		t.Errorf("expected Shell to be '/bin/bash', got %q", merged.Shell)
+	}
+}
+
+func TestMergeGlobalConfigs_NamedLayouts(t *testing.T) {
+	config1 := &GlobalConfig{
+		NamedLayouts: map[string]*TmuxPaneLayout{
+			"dev": {
+				Cwd: ".",
+				Cmd: "npm run dev",
+			},
+			"common": {
+				Cwd: ".",
+				Cmd: "original command",
+			},
+		},
+	}
+
+	config2 := &GlobalConfig{
+		NamedLayouts: map[string]*TmuxPaneLayout{
+			"test": {
+				Cwd: ".",
+				Cmd: "npm test",
+			},
+			"common": {
+				Cwd: ".",
+				Cmd: "overridden command",
+			},
+		},
+	}
+
+	merged := mergeGlobalConfigs(config1, config2)
+
+	if merged.NamedLayouts == nil {
+		t.Fatal("expected NamedLayouts to not be nil")
+	}
+
+	// Should have 3 layouts (dev, test, common)
+	if len(merged.NamedLayouts) != 3 {
+		t.Errorf("expected 3 named layouts, got %d", len(merged.NamedLayouts))
+	}
+
+	// dev should be from config1
+	if dev := merged.NamedLayouts["dev"]; dev == nil {
+		t.Error("expected 'dev' layout to exist")
+	} else if dev.Cmd != "npm run dev" {
+		t.Errorf("expected dev.Cmd to be 'npm run dev', got %q", dev.Cmd)
+	}
+
+	// test should be from config2
+	if test := merged.NamedLayouts["test"]; test == nil {
+		t.Error("expected 'test' layout to exist")
+	} else if test.Cmd != "npm test" {
+		t.Errorf("expected test.Cmd to be 'npm test', got %q", test.Cmd)
+	}
+
+	// common should be overridden by config2
+	if common := merged.NamedLayouts["common"]; common == nil {
+		t.Error("expected 'common' layout to exist")
+	} else if common.Cmd != "overridden command" {
+		t.Errorf("expected common.Cmd to be 'overridden command', got %q", common.Cmd)
+	}
+}
+
+func TestMergeGlobalConfigs_DefaultLayout(t *testing.T) {
+	config1 := &GlobalConfig{
+		DefaultLayout: &TmuxPaneLayout{
+			Cwd: ".",
+			Cmd: "original",
+		},
+	}
+
+	config2 := &GlobalConfig{
+		DefaultLayout: &TmuxPaneLayout{
+			Cwd:   ".",
+			Clock: true,
+		},
+	}
+
+	merged := mergeGlobalConfigs(config1, config2)
+
+	if merged.DefaultLayout == nil {
+		t.Fatal("expected DefaultLayout to not be nil")
+	}
+
+	// DefaultLayout should be fully replaced by config2
+	if !merged.DefaultLayout.Clock {
+		t.Error("expected DefaultLayout.Clock to be true")
+	}
+}
+
+func TestLoadGlobalConfig_WithNamedLayouts(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, ".tmux.yaml")
+
+	content := `
+.config:
+  shell: /bin/zsh
+  named_layouts:
+    dev:
+      cwd: .
+      cmd: npm run dev
+      split:
+        direction: h
+        child:
+          cwd: .
+          cmd: npm test
+    simple:
+      cwd: .
+      clock: true
+
+testproject:
+  root: /tmp/test
+`
+	err := os.WriteFile(configPath, []byte(content), 0644)
+	if err != nil {
+		t.Fatalf("failed to write temp config: %v", err)
+	}
+
+	globalConfig, err := loadGlobalConfig(configPath)
+	if err != nil {
+		t.Fatalf("failed to load global config: %v", err)
+	}
+
+	if globalConfig == nil {
+		t.Fatal("expected globalConfig to not be nil")
+	}
+
+	if globalConfig.NamedLayouts == nil {
+		t.Fatal("expected NamedLayouts to not be nil")
+	}
+
+	if len(globalConfig.NamedLayouts) != 2 {
+		t.Errorf("expected 2 named layouts, got %d", len(globalConfig.NamedLayouts))
+	}
+
+	dev := globalConfig.NamedLayouts["dev"]
+	if dev == nil {
+		t.Fatal("expected 'dev' layout to exist")
+	}
+	if dev.Cmd != "npm run dev" {
+		t.Errorf("expected dev.Cmd to be 'npm run dev', got %q", dev.Cmd)
+	}
+	if dev.Split == nil {
+		t.Fatal("expected dev.Split to not be nil")
+	}
+	if dev.Split.Direction != "h" {
+		t.Errorf("expected dev.Split.Direction to be 'h', got %q", dev.Split.Direction)
+	}
+
+	simple := globalConfig.NamedLayouts["simple"]
+	if simple == nil {
+		t.Fatal("expected 'simple' layout to exist")
+	}
+	if !simple.Clock {
+		t.Error("expected simple.Clock to be true")
+	}
+}
+
 func TestFindConfigFile(t *testing.T) {
 	// Create a temporary directory with a config file
 	tmpDir := t.TempDir()

@@ -193,6 +193,14 @@ func mergeGlobalConfigs(configs ...*GlobalConfig) *GlobalConfig {
 		if cfg.DefaultLayout != nil {
 			result.DefaultLayout = cfg.DefaultLayout
 		}
+		if cfg.NamedLayouts != nil {
+			if result.NamedLayouts == nil {
+				result.NamedLayouts = make(map[string]*TmuxPaneLayout)
+			}
+			for name, layout := range cfg.NamedLayouts {
+				result.NamedLayouts[name] = layout
+			}
+		}
 	}
 	return result
 }

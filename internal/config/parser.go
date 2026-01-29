@@ -119,6 +119,11 @@ func parseLayout(layoutInput *TmuxLayoutInput, root string) TmuxPaneLayout {
 	}
 
 	if layoutInput.IsString {
+		// Check if it's a named layout reference
+		if namedLayout := GetNamedLayout(layoutInput.String); namedLayout != nil {
+			return parsePaneLayout(namedLayout, root)
+		}
+		// Otherwise treat as directory path
 		return TmuxPaneLayout{
 			Cwd: resolvePath(root, layoutInput.String),
 			Cmd: DefaultEmptyPane.Cmd,
@@ -164,9 +169,10 @@ func parseLayoutWithCwd(layoutInput *TmuxLayoutInput, cwd string) TmuxPaneLayout
 // parsePaneLayout parses a TmuxPaneLayout resolving paths
 func parsePaneLayout(pane *TmuxPaneLayout, root string) TmuxPaneLayout {
 	result := TmuxPaneLayout{
-		Cwd:  resolvePath(root, pane.Cwd),
-		Cmd:  pane.Cmd,
-		Zoom: pane.Zoom,
+		Cwd:   resolvePath(root, pane.Cwd),
+		Cmd:   pane.Cmd,
+		Zoom:  pane.Zoom,
+		Clock: pane.Clock,
 	}
 
 	if pane.Split != nil {

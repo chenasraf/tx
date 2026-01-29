@@ -200,3 +200,130 @@ func TestDefaultEmptyLayout(t *testing.T) {
 		t.Errorf("expected nested Split.Direction to be 'v', got %q", DefaultEmptyLayout.Split.Child.Split.Direction)
 	}
 }
+
+func TestGetNamedLayout(t *testing.T) {
+	// Save and restore original state
+	originalLayouts := ConfiguredNamedLayouts
+	defer func() { ConfiguredNamedLayouts = originalLayouts }()
+
+	// Test when no named layouts are configured
+	ConfiguredNamedLayouts = nil
+	if layout := GetNamedLayout("test"); layout != nil {
+		t.Error("expected nil when no named layouts configured")
+	}
+
+	// Test when named layout exists
+	ConfiguredNamedLayouts = map[string]*TmuxPaneLayout{
+		"dev": {
+			Cwd: ".",
+			Cmd: "npm run dev",
+		},
+		"simple": {
+			Cwd:   ".",
+			Clock: true,
+		},
+	}
+
+	layout := GetNamedLayout("dev")
+	if layout == nil {
+		t.Fatal("expected to find 'dev' layout")
+	}
+	if layout.Cmd != "npm run dev" {
+		t.Errorf("expected Cmd to be 'npm run dev', got %q", layout.Cmd)
+	}
+
+	layout = GetNamedLayout("simple")
+	if layout == nil {
+		t.Fatal("expected to find 'simple' layout")
+	}
+	if !layout.Clock {
+		t.Error("expected Clock to be true")
+	}
+
+	// Test when named layout doesn't exist
+	if layout := GetNamedLayout("nonexistent"); layout != nil {
+		t.Error("expected nil for nonexistent layout")
+	}
+}
+
+func TestGetDefaultLayout(t *testing.T) {
+	// Save and restore original state
+	originalLayout := ConfiguredDefaultLayout
+	defer func() { ConfiguredDefaultLayout = originalLayout }()
+
+	// Test when no custom default layout is configured
+	ConfiguredDefaultLayout = nil
+	layout := GetDefaultLayout()
+	if layout != &DefaultEmptyLayout {
+		t.Error("expected DefaultEmptyLayout when no custom layout configured")
+	}
+
+	// Test when custom default layout is configured
+	customLayout := &TmuxPaneLayout{
+		Cwd:   ".",
+		Clock: true,
+	}
+	ConfiguredDefaultLayout = customLayout
+	layout = GetDefaultLayout()
+	if layout != customLayout {
+		t.Error("expected custom layout when configured")
+	}
+}
+
+func TestGlobalConfig_NamedLayouts(t *testing.T) {
+	yamlData := `
+shell: /bin/zsh
+named_layouts:
+  dev:
+    cwd: .
+    cmd: npm run dev
+    split:
+      direction: h
+      child:
+        cwd: .
+        cmd: npm test
+  simple:
+    cwd: .
+    clock: true
+`
+
+	var cfg GlobalConfig
+	err := yaml.Unmarshal([]byte(yamlData), &cfg)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.Shell != "/bin/zsh" {
+		t.Errorf("expected Shell to be '/bin/zsh', got %q", cfg.Shell)
+	}
+
+	if cfg.NamedLayouts == nil {
+		t.Fatal("expected NamedLayouts to not be nil")
+	}
+
+	if len(cfg.NamedLayouts) != 2 {
+		t.Errorf("expected 2 named layouts, got %d", len(cfg.NamedLayouts))
+	}
+
+	dev := cfg.NamedLayouts["dev"]
+	if dev == nil {
+		t.Fatal("expected 'dev' layout to exist")
+	}
+	if dev.Cmd != "npm run dev" {
+		t.Errorf("expected dev.Cmd to be 'npm run dev', got %q", dev.Cmd)
+	}
+	if dev.Split == nil {
+		t.Fatal("expected dev.Split to not be nil")
+	}
+	if dev.Split.Direction != "h" {
+		t.Errorf("expected dev.Split.Direction to be 'h', got %q", dev.Split.Direction)
+	}
+
+	simple := cfg.NamedLayouts["simple"]
+	if simple == nil {
+		t.Fatal("expected 'simple' layout to exist")
+	}
+	if !simple.Clock {
+		t.Error("expected simple.Clock to be true")
+	}
+}

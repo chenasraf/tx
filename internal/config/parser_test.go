@@ -286,3 +286,123 @@ func TestResolvePath(t *testing.T) {
 		})
 	}
 }
+
+func TestParseConfig_NamedLayout(t *testing.T) {
+	// Save and restore original state
+	originalLayouts := ConfiguredNamedLayouts
+	defer func() { ConfiguredNamedLayouts = originalLayouts }()
+
+	// Configure named layouts
+	ConfiguredNamedLayouts = map[string]*TmuxPaneLayout{
+		"dev": {
+			Cwd: ".",
+			Cmd: "npm run dev",
+			Split: &TmuxSplitLayout{
+				Direction: "h",
+				Child: &TmuxPaneLayout{
+					Cwd: ".",
+					Cmd: "npm run test:watch",
+				},
+			},
+		},
+		"simple": {
+			Cwd:   ".",
+			Clock: true,
+		},
+	}
+
+	input := TmuxConfigItemInput{
+		Root: "/tmp/myproject",
+		Name: "myproject",
+		Windows: []TmuxWindowInput{
+			{
+				Window: &TmuxWindow{
+					Name: "main",
+					Cwd:  "./src",
+					Layout: &TmuxLayoutInput{
+						IsString: true,
+						String:   "dev", // Reference named layout
+					},
+				},
+			},
+			{
+				Window: &TmuxWindow{
+					Name: "logs",
+					Cwd:  "./logs",
+					Layout: &TmuxLayoutInput{
+						IsString: true,
+						String:   "simple", // Reference named layout
+					},
+				},
+			},
+		},
+	}
+
+	result := ParseConfig("myproject", input)
+
+	if len(result.Windows) != 2 {
+		t.Fatalf("expected 2 windows, got %d", len(result.Windows))
+	}
+
+	// Check first window uses "dev" layout
+	mainLayout := result.Windows[0].Layout
+	if mainLayout.Cmd != "npm run dev" {
+		t.Errorf("expected first window Cmd to be 'npm run dev', got %q", mainLayout.Cmd)
+	}
+	if mainLayout.Split == nil {
+		t.Fatal("expected first window Split to not be nil")
+	}
+	if mainLayout.Split.Direction != "h" {
+		t.Errorf("expected first window Split.Direction to be 'h', got %q", mainLayout.Split.Direction)
+	}
+	if mainLayout.Split.Child == nil {
+		t.Fatal("expected first window Split.Child to not be nil")
+	}
+	if mainLayout.Split.Child.Cmd != "npm run test:watch" {
+		t.Errorf("expected first window child Cmd to be 'npm run test:watch', got %q", mainLayout.Split.Child.Cmd)
+	}
+
+	// Check second window uses "simple" layout
+	logsLayout := result.Windows[1].Layout
+	if !logsLayout.Clock {
+		t.Error("expected second window Clock to be true")
+	}
+}
+
+func TestParseConfig_NamedLayoutNotFound(t *testing.T) {
+	// Save and restore original state
+	originalLayouts := ConfiguredNamedLayouts
+	defer func() { ConfiguredNamedLayouts = originalLayouts }()
+
+	// No named layouts configured
+	ConfiguredNamedLayouts = nil
+
+	input := TmuxConfigItemInput{
+		Root: "/tmp/myproject",
+		Name: "myproject",
+		Windows: []TmuxWindowInput{
+			{
+				Window: &TmuxWindow{
+					Name: "main",
+					Cwd:  "./src",
+					Layout: &TmuxLayoutInput{
+						IsString: true,
+						String:   "nonexistent", // Not a named layout, should be treated as path
+					},
+				},
+			},
+		},
+	}
+
+	result := ParseConfig("myproject", input)
+
+	if len(result.Windows) != 1 {
+		t.Fatalf("expected 1 window, got %d", len(result.Windows))
+	}
+
+	// Should be treated as a directory path
+	layout := result.Windows[0].Layout
+	if layout.Cwd != "/tmp/myproject/src/nonexistent" {
+		t.Errorf("expected layout Cwd to be '/tmp/myproject/src/nonexistent', got %q", layout.Cwd)
+	}
+}

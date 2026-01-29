@@ -6,9 +6,10 @@ import (
 
 // GlobalConfig holds global settings from the .config section
 type GlobalConfig struct {
-	Shell         string          `yaml:"shell,omitempty"`
-	ProjectsPath  string          `yaml:"projects_path,omitempty"`
-	DefaultLayout *TmuxPaneLayout `yaml:"default_layout,omitempty"`
+	Shell         string                     `yaml:"shell,omitempty"`
+	ProjectsPath  string                     `yaml:"projects_path,omitempty"`
+	DefaultLayout *TmuxPaneLayout            `yaml:"default_layout,omitempty"`
+	NamedLayouts  map[string]*TmuxPaneLayout `yaml:"named_layouts,omitempty"`
 }
 
 // ConfigFile represents the top-level config file: map of session name -> config
@@ -134,12 +135,23 @@ var DefaultEmptyPane = TmuxPaneLayout{
 // ConfiguredDefaultLayout holds the user-configured default layout (set from .config)
 var ConfiguredDefaultLayout *TmuxPaneLayout
 
+// ConfiguredNamedLayouts holds user-configured named layouts (set from .config)
+var ConfiguredNamedLayouts map[string]*TmuxPaneLayout
+
 // GetDefaultLayout returns the configured default layout or the hardcoded default
 func GetDefaultLayout() *TmuxPaneLayout {
 	if ConfiguredDefaultLayout != nil {
 		return ConfiguredDefaultLayout
 	}
 	return &DefaultEmptyLayout
+}
+
+// GetNamedLayout returns a named layout by name, or nil if not found
+func GetNamedLayout(name string) *TmuxPaneLayout {
+	if ConfiguredNamedLayouts == nil {
+		return nil
+	}
+	return ConfiguredNamedLayouts[name]
 }
 
 // DefaultEmptyLayout is the default layout with horizontal and vertical splits
