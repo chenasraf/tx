@@ -54,7 +54,7 @@ func ParseConfig(key string, item TmuxConfigItemInput) ParsedTmuxConfigItem {
 				Name: name,
 				Cwd:  root,
 				Layout: &TmuxLayoutInput{
-					PaneLayout: &DefaultEmptyLayout,
+					PaneLayout: GetDefaultLayout(),
 				},
 			},
 		}
@@ -81,7 +81,7 @@ func parseWindow(w TmuxWindowInput, root string) ParsedTmuxWindow {
 		return ParsedTmuxWindow{
 			Name:   NameFix(filepath.Base(resolvedCwd)),
 			Cwd:    resolvedCwd,
-			Layout: parseLayoutWithCwd(&TmuxLayoutInput{PaneLayout: &DefaultEmptyLayout}, resolvedCwd),
+			Layout: parseLayoutWithCwd(&TmuxLayoutInput{PaneLayout: GetDefaultLayout()}, resolvedCwd),
 		}
 	}
 
@@ -90,7 +90,7 @@ func parseWindow(w TmuxWindowInput, root string) ParsedTmuxWindow {
 		return ParsedTmuxWindow{
 			Name:   NameFix(filepath.Base(root)),
 			Cwd:    root,
-			Layout: parseLayoutWithCwd(&TmuxLayoutInput{PaneLayout: &DefaultEmptyLayout}, root),
+			Layout: parseLayoutWithCwd(&TmuxLayoutInput{PaneLayout: GetDefaultLayout()}, root),
 		}
 	}
 
@@ -139,7 +139,7 @@ func parseLayout(layoutInput *TmuxLayoutInput, root string) TmuxPaneLayout {
 			}
 		}
 
-		baseLayout := parseLayout(&TmuxLayoutInput{PaneLayout: &DefaultEmptyLayout}, root)
+		baseLayout := parseLayout(&TmuxLayoutInput{PaneLayout: GetDefaultLayout()}, root)
 		baseLayout.Split = split
 		return baseLayout
 	}
@@ -198,6 +198,7 @@ func copyTmuxSplitLayout(split *TmuxSplitLayout, root string) *TmuxSplitLayout {
 			Cwd:   resolvePath(root, split.Child.Cwd),
 			Cmd:   split.Child.Cmd,
 			Zoom:  split.Child.Zoom,
+			Clock: split.Child.Clock,
 			Split: copyTmuxSplitLayout(split.Child.Split, root),
 		}
 		result.Child = &child

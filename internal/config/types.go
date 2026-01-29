@@ -6,8 +6,9 @@ import (
 
 // GlobalConfig holds global settings from the .config section
 type GlobalConfig struct {
-	Shell        string `yaml:"shell,omitempty"`
-	ProjectsPath string `yaml:"projects_path,omitempty"`
+	Shell         string          `yaml:"shell,omitempty"`
+	ProjectsPath  string          `yaml:"projects_path,omitempty"`
+	DefaultLayout *TmuxPaneLayout `yaml:"default_layout,omitempty"`
 }
 
 // ConfigFile represents the top-level config file: map of session name -> config
@@ -100,6 +101,7 @@ type TmuxPaneLayout struct {
 	Cwd   string           `yaml:"cwd"`
 	Cmd   string           `yaml:"cmd,omitempty"`
 	Zoom  bool             `yaml:"zoom,omitempty"`
+	Clock bool             `yaml:"clock,omitempty"`
 	Split *TmuxSplitLayout `yaml:"split,omitempty"`
 }
 
@@ -129,6 +131,17 @@ var DefaultEmptyPane = TmuxPaneLayout{
 	Cmd: "",
 }
 
+// ConfiguredDefaultLayout holds the user-configured default layout (set from .config)
+var ConfiguredDefaultLayout *TmuxPaneLayout
+
+// GetDefaultLayout returns the configured default layout or the hardcoded default
+func GetDefaultLayout() *TmuxPaneLayout {
+	if ConfiguredDefaultLayout != nil {
+		return ConfiguredDefaultLayout
+	}
+	return &DefaultEmptyLayout
+}
+
 // DefaultEmptyLayout is the default layout with horizontal and vertical splits
 var DefaultEmptyLayout = TmuxPaneLayout{
 	Cwd:  ".",
@@ -141,7 +154,8 @@ var DefaultEmptyLayout = TmuxPaneLayout{
 			Split: &TmuxSplitLayout{
 				Direction: "v",
 				Child: &TmuxPaneLayout{
-					Cwd: ".",
+					Cwd:   ".",
+					Clock: true,
 				},
 			},
 		},

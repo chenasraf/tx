@@ -191,6 +191,9 @@ func mergeGlobalConfigs(configs ...*GlobalConfig) *GlobalConfig {
 		if cfg.ProjectsPath != "" {
 			result.ProjectsPath = cfg.ProjectsPath
 		}
+		if cfg.DefaultLayout != nil {
+			result.DefaultLayout = cfg.DefaultLayout
+		}
 	}
 	return result
 }

@@ -63,6 +63,10 @@ func initConfig(cmd *cobra.Command, args []string) error {
 		if globalConfig.Shell != "" {
 			exec.Shell = globalConfig.Shell
 		}
+		// Apply default layout from config
+		if globalConfig.DefaultLayout != nil {
+			config.ConfiguredDefaultLayout = globalConfig.DefaultLayout
+		}
 	}
 	return nil
 }

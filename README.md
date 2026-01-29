@@ -214,6 +214,7 @@ layout:
   cwd: .
   cmd: npm start # command to run
   zoom: true # zoom this pane
+  clock: false # show tmux clock mode
   split:
     direction: h # h (horizontal) or v (vertical)
     child:
@@ -223,6 +224,7 @@ layout:
         direction: v
         child:
           cwd: .
+          clock: true # show clock in this pane
 ```
 
 ### Global Settings
@@ -241,10 +243,49 @@ myproject:
 
 #### Available Settings
 
-| Setting         | Description                                       |
-| --------------- | ------------------------------------------------- |
-| `shell`         | Shell to use for command execution                |
-| `projects_path` | Directory for `tx prj` command (required for prj) |
+| Setting          | Description                                       |
+| ---------------- | ------------------------------------------------- |
+| `shell`          | Shell to use for command execution                |
+| `projects_path`  | Directory for `tx prj` command (required for prj) |
+| `default_layout` | Default pane layout for new windows (see below)   |
+
+#### Default Layout
+
+The `default_layout` setting configures the default pane arrangement for windows. Each pane can
+have:
+
+| Setting | Description                                                   |
+| ------- | ------------------------------------------------------------- |
+| `cwd`   | Working directory (defaults to window's directory)            |
+| `cmd`   | Command to run (defaults to none)                             |
+| `clock` | Show tmux clock mode (defaults to false)                      |
+| `split` | Create a split with direction (`h` or `v`) and a `child` pane |
+
+Example - single pane with clock:
+
+```yaml
+.config:
+  default_layout:
+    cwd: .
+    clock: true
+```
+
+Example - horizontal split with vertical sub-split (default):
+
+```yaml
+.config:
+  default_layout:
+    cwd: .
+    split:
+      direction: h
+      child:
+        cwd: .
+        split:
+          direction: v
+          child:
+            cwd: .
+            clock: true
+```
 
 #### Shell Resolution Order
 

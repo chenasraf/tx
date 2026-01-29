@@ -49,12 +49,17 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem) er
 			sessionName, i+1, windowName, dir,
 		))
 
-		// Get pane commands
-		paneCommands := getPaneCommands(opts, window.Layout, sessionName, windowName, root)
+		// Get pane commands - paneIndex starts at 0 for the window's initial pane
+		paneIndex := 0
+		paneCommands, timePanes := getPaneCommands(opts, window.Layout, sessionName, windowName, root, &paneIndex)
 		commands = append(commands, paneCommands...)
 
-		// Set clock mode and select first pane
-		commands = append(commands, fmt.Sprintf("tmux clock-mode -t %s:%s", sessionName, windowName))
+		// Execute clock-mode for panes that have Time: true
+		for _, paneIdx := range timePanes {
+			commands = append(commands, fmt.Sprintf("tmux clock-mode -t %s:%s.%d", sessionName, windowName, paneIdx))
+		}
+
+		// Select first pane
 		commands = append(commands, fmt.Sprintf("tmux select-pane -t %s.0", sessionName))
 	}
 
@@ -73,8 +78,17 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem) er
 }
 
 // getPaneCommands generates tmux commands for pane layout
-func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, windowName, rootDir string) []string {
+// Returns the commands and a list of pane indices that should show time (clock-mode)
+func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, windowName, rootDir string, paneIndex *int) ([]string, []int) {
 	var commands []string
+	var timePanes []int
+
+	currentPane := *paneIndex
+
+	// Check if this pane should show time
+	if pane.Clock {
+		timePanes = append(timePanes, currentPane)
+	}
 
 	// Send command if specified
 	if pane.Cmd != "" {
@@ -102,6 +116,9 @@ func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, wi
 
 		exec.Log(opts, "Splitting pane:", pane.Split, "direction:", direction)
 
+		// Increment pane index for the new pane created by split
+		*paneIndex++
+
 		commands = append(commands, fmt.Sprintf(
 			"tmux split-window -%s -t %s:%s -c %s",
 			direction, sessionName, windowName, cwd,
@@ -110,8 +127,9 @@ func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, wi
 		// Handle child pane
 		if pane.Split.Child != nil {
 			exec.Log(opts, "Handling child pane:", pane.Split.Child)
-			childCommands := getPaneCommands(opts, *pane.Split.Child, sessionName, windowName, rootDir)
+			childCommands, childTimePanes := getPaneCommands(opts, *pane.Split.Child, sessionName, windowName, rootDir, paneIndex)
 			commands = append(commands, childCommands...)
+			timePanes = append(timePanes, childTimePanes...)
 		}
 
 		// Handle zoom
@@ -123,5 +141,5 @@ func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, wi
 		}
 	}
 
-	return commands
+	return commands, timePanes
 }
