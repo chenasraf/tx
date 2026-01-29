@@ -10,6 +10,9 @@ import (
 )
 
 var (
+	// Version is set by main.go from embedded version.txt
+	Version string
+
 	// Global flags
 	verbose bool
 	dry     bool
@@ -66,6 +69,7 @@ func initConfig(cmd *cobra.Command, args []string) error {
 
 // Execute adds all child commands to the root command and sets flags appropriately
 func Execute() {
+	rootCmd.Version = Version
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err.Error())
 		os.Exit(1)
