@@ -101,6 +101,7 @@ func initConfig(cmd *cobra.Command, args []string) error {
 // Execute adds all child commands to the root command and sets flags appropriately
 func Execute() {
 	rootCmd.Version = Version
+	rootCmd.SetVersionTemplate("{{.Version}}\n")
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err.Error())
 		os.Exit(1)
@@ -109,8 +110,9 @@ func Execute() {
 
 func init() {
 	// Global flags
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose logging")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "V", false, "Verbose logging")
 	rootCmd.PersistentFlags().BoolVarP(&dry, "dry", "d", false, "Dry run (log commands, don't execute)")
+	rootCmd.Flags().BoolP("version", "v", false, "Print version")
 
 	// Add subcommands
 	rootCmd.AddCommand(listCmd)
