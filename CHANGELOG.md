@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.0](https://github.com/chenasraf/tx/compare/v1.1.0...v1.2.0) (2026-01-30)
+
+
+### Features
+
+* add kill command ([0c73e4c](https://github.com/chenasraf/tx/commit/0c73e4c502bea7ec1002bcdc94e2f10d479d2c30))
+* add named layouts ([ffd722b](https://github.com/chenasraf/tx/commit/ffd722b6c90dfa902f9e46419e523edc51737336))
+* add session autocompletions ([2e74146](https://github.com/chenasraf/tx/commit/2e741464c117c68e164dbe776a18557a5f8ddf22))
+
 ## [1.1.0](https://github.com/chenasraf/tx/compare/v1.0.1...v1.1.0) (2026-01-29)
 
 
