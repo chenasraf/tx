@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/chenasraf/tx/compare/v1.2.0...v1.2.1) (2026-02-01)
+
+
+### Bug Fixes
+
+* select pane with window name ([916bbef](https://github.com/chenasraf/tx/commit/916bbef6e6680a4719af24dc08d89e81e85f1bae))
+* version/verbose flag ([e917d6a](https://github.com/chenasraf/tx/commit/e917d6a5fc1325b3f54561b3589a9194db8c08dd))
+
 ## [1.2.0](https://github.com/chenasraf/tx/compare/v1.1.0...v1.2.0) (2026-01-30)
 
 
