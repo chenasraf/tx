@@ -60,7 +60,7 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem) er
 		}
 
 		// Select first pane
-		commands = append(commands, fmt.Sprintf("tmux select-pane -t %s.0", sessionName))
+		commands = append(commands, fmt.Sprintf("tmux select-pane -t %s:%s.0", sessionName, windowName))
 	}
 
 	// Select first window
