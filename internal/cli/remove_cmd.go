@@ -33,11 +33,12 @@ func runRemove(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if _, exists := allConfig[key]; !exists {
+	_, actualKey, exists := allConfig.Get(key)
+	if !exists {
 		return NewUserError("tmux config item '" + key + "' not found")
 	}
 
-	err = config.RemoveConfigFromFile(key, removeLocal, opts.Dry)
+	err = config.RemoveConfigFromFile(actualKey, removeLocal, opts.Dry)
 	if err != nil {
 		return err
 	}

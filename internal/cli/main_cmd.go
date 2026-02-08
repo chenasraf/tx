@@ -34,10 +34,11 @@ func runMain(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		if _, exists := info.Merged.Config[selected]; !exists {
+		if _, actualKey, exists := info.Merged.Config.Get(selected); !exists {
 			return NewUserError("tmux config item '" + selected + "' not found")
+		} else {
+			key = actualKey
 		}
-		key = selected
 	}
 
 	// Get config
@@ -46,12 +47,12 @@ func runMain(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	item, exists := allConfig[key]
+	item, actualKey, exists := allConfig.Get(key)
 	if !exists {
 		return NewUserError("tmux config item '" + key + "' not found")
 	}
 
-	parsed := config.ParseConfig(key, item)
+	parsed := config.ParseConfig(actualKey, item)
 
 	// Check if session exists
 	if tmux.SessionExists(opts, parsed.Name) {

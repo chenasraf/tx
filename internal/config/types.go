@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,6 +16,23 @@ type GlobalConfig struct {
 
 // ConfigFile represents the top-level config file: map of session name -> config
 type ConfigFile map[string]TmuxConfigItemInput
+
+// Get performs a case-insensitive lookup of a key in the config file.
+// It returns the config item, the actual key as stored in the config, and whether it was found.
+func (c ConfigFile) Get(key string) (TmuxConfigItemInput, string, bool) {
+	// Try exact match first
+	if item, ok := c[key]; ok {
+		return item, key, true
+	}
+	// Fall back to case-insensitive match
+	lower := strings.ToLower(key)
+	for k, v := range c {
+		if strings.ToLower(k) == lower {
+			return v, k, true
+		}
+	}
+	return TmuxConfigItemInput{}, "", false
+}
 
 // TmuxConfigItemInput represents a single tmux session configuration
 type TmuxConfigItemInput struct {

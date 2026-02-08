@@ -49,12 +49,12 @@ func runShow(cmd *cobra.Command, args []string) error {
 		key = selected
 	}
 
-	item, exists := allConfig[key]
+	item, actualKey, exists := allConfig.Get(key)
 	if !exists {
 		return NewUserError("tmux config item '" + key + "' not found")
 	}
 
-	parsed := config.ParseConfig(key, item)
+	parsed := config.ParseConfig(actualKey, item)
 
 	if showJSON {
 		data, err := json.Marshal(parsed)

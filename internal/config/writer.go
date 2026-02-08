@@ -37,7 +37,7 @@ func AddSimpleConfigToFile(config ParsedTmuxConfigItem, local bool, dryRun bool)
 		return err
 	}
 
-	if _, exists := allConfigs[config.Name]; exists && !dryRun {
+	if _, _, exists := allConfigs.Get(config.Name); exists && !dryRun {
 		return fmt.Errorf("%w: '%s'", ErrConfigItemExists, config.Name)
 	}
 

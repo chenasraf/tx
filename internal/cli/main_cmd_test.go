@@ -58,6 +58,41 @@ testproject:
 	}
 }
 
+func TestRunMain_CaseInsensitiveKey(t *testing.T) {
+	// Create a temp directory with a config file
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, ".tmux.yaml")
+
+	content := `
+Notes:
+  root: /tmp/notes
+  windows:
+    - ./src
+`
+	err := os.WriteFile(configPath, []byte(content), 0644)
+	if err != nil {
+		t.Fatalf("failed to write temp config: %v", err)
+	}
+
+	// Set XDG_CONFIG_HOME to temp directory so config is found
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
+
+	dry = true
+	defer func() { dry = false }()
+
+	// Should succeed with different casings
+	for _, key := range []string{"Notes", "notes", "NOTES", "nOtEs"} {
+		t.Run(key, func(t *testing.T) {
+			err := runMain(nil, []string{key})
+			if err != nil {
+				t.Errorf("expected no error for key %q, got %v", key, err)
+			}
+		})
+	}
+}
+
 func TestRunMain_InvalidKey(t *testing.T) {
 	// Create a temp directory with a config file
 	tmpDir := t.TempDir()

@@ -180,6 +180,102 @@ another:
 	}
 }
 
+func TestConfigFile_Get_ExactMatch(t *testing.T) {
+	config := ConfigFile{
+		"notes": {Root: "/tmp/notes"},
+		"work":  {Root: "/tmp/work"},
+	}
+
+	item, actualKey, ok := config.Get("notes")
+	if !ok {
+		t.Fatal("expected to find 'notes'")
+	}
+	if actualKey != "notes" {
+		t.Errorf("expected actualKey 'notes', got %q", actualKey)
+	}
+	if item.Root != "/tmp/notes" {
+		t.Errorf("expected Root '/tmp/notes', got %q", item.Root)
+	}
+}
+
+func TestConfigFile_Get_CaseInsensitive(t *testing.T) {
+	config := ConfigFile{
+		"Notes": {Root: "/tmp/notes"},
+		"work":  {Root: "/tmp/work"},
+	}
+
+	tests := []struct {
+		lookup    string
+		wantKey   string
+		wantFound bool
+	}{
+		{"Notes", "Notes", true},
+		{"notes", "Notes", true},
+		{"NOTES", "Notes", true},
+		{"nOtEs", "Notes", true},
+		{"work", "work", true},
+		{"Work", "work", true},
+		{"WORK", "work", true},
+		{"missing", "", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.lookup, func(t *testing.T) {
+			_, actualKey, ok := config.Get(tt.lookup)
+			if ok != tt.wantFound {
+				t.Errorf("Get(%q): found=%v, want %v", tt.lookup, ok, tt.wantFound)
+			}
+			if ok && actualKey != tt.wantKey {
+				t.Errorf("Get(%q): actualKey=%q, want %q", tt.lookup, actualKey, tt.wantKey)
+			}
+		})
+	}
+}
+
+func TestConfigFile_Get_ExactMatchTakesPrecedence(t *testing.T) {
+	// If both "notes" and "Notes" exist, exact match should win
+	config := ConfigFile{
+		"notes": {Root: "/tmp/lower"},
+		"Notes": {Root: "/tmp/upper"},
+	}
+
+	_, actualKey, ok := config.Get("notes")
+	if !ok {
+		t.Fatal("expected to find 'notes'")
+	}
+	if actualKey != "notes" {
+		t.Errorf("expected exact match 'notes', got %q", actualKey)
+	}
+
+	_, actualKey, ok = config.Get("Notes")
+	if !ok {
+		t.Fatal("expected to find 'Notes'")
+	}
+	if actualKey != "Notes" {
+		t.Errorf("expected exact match 'Notes', got %q", actualKey)
+	}
+}
+
+func TestConfigFile_Get_NotFound(t *testing.T) {
+	config := ConfigFile{
+		"notes": {Root: "/tmp/notes"},
+	}
+
+	_, _, ok := config.Get("missing")
+	if ok {
+		t.Error("expected not found for 'missing'")
+	}
+}
+
+func TestConfigFile_Get_EmptyConfig(t *testing.T) {
+	config := ConfigFile{}
+
+	_, _, ok := config.Get("anything")
+	if ok {
+		t.Error("expected not found in empty config")
+	}
+}
+
 func TestDefaultEmptyLayout(t *testing.T) {
 	if DefaultEmptyLayout.Cwd != "." {
 		t.Errorf("expected Cwd to be '.', got %q", DefaultEmptyLayout.Cwd)

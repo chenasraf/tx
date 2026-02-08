@@ -33,12 +33,12 @@ func runAttach(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		item, exists := allConfig[key]
+		item, actualKey, exists := allConfig.Get(key)
 		if !exists {
 			return NewUserError("tmux config item '" + key + "' not found")
 		}
 
-		parsed := config.ParseConfig(key, item)
+		parsed := config.ParseConfig(actualKey, item)
 
 		if !tmux.SessionExists(opts, parsed.Name) {
 			return NewUserError("tmux session '" + parsed.Name + "' does not exist")
