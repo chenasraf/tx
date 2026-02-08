@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/chenasraf/tx/compare/v1.2.1...v1.3.0) (2026-02-08)
+
+
+### Features
+
+* config name case insensitivity ([5c71d7b](https://github.com/chenasraf/tx/commit/5c71d7bc11ace64f7d96be07fba0fa7e3dae843f))
+
 ## [1.2.1](https://github.com/chenasraf/tx/compare/v1.2.0...v1.2.1) (2026-02-01)
 
 
