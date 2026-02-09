@@ -76,7 +76,11 @@ func runPrj(cmd *cobra.Command, args []string) error {
 
 	// If no name, use fuzzy finder to select from existing projects
 	if name == "" {
-		selected, err := fzf.Run(projects, fzf.Options{})
+		items := make([]fzf.Item, len(projects))
+		for i, p := range projects {
+			items[i] = fzf.Item{Key: p, Display: p}
+		}
+		selected, err := fzf.Run(items, fzf.Options{})
 		if err != nil {
 			return err
 		}

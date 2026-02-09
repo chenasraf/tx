@@ -97,7 +97,12 @@ func runList(cmd *cobra.Command, args []string) error {
 	fmt.Println("tmux configurations:")
 	fmt.Println()
 	for _, k := range keys {
-		fmt.Println("  -", k)
+		item := rawConfig[k]
+		if len(item.Aliases) > 0 {
+			fmt.Printf("  - %s \033[2m%s\033[0m\n", k, strings.Join(item.Aliases, ", "))
+		} else {
+			fmt.Println("  -", k)
+		}
 	}
 
 	return nil

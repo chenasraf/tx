@@ -168,6 +168,9 @@ func mergeConfigs(configs ...ConfigFile) ConfigFile {
 				if len(value.Windows) > 0 {
 					merged.Windows = value.Windows
 				}
+				if len(value.Aliases) > 0 {
+					merged.Aliases = value.Aliases
+				}
 				out[key] = merged
 			} else {
 				out[key] = value

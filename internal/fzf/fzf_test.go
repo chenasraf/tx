@@ -24,7 +24,7 @@ func TestOptions(t *testing.T) {
 }
 
 func TestRun_EmptyInputs(t *testing.T) {
-	_, err := Run([]string{}, Options{})
+	_, err := Run([]Item{}, Options{})
 	if err == nil {
 		t.Error("expected error for empty inputs")
 	}
@@ -34,7 +34,7 @@ func TestRun_EmptyInputs(t *testing.T) {
 }
 
 func TestRunWithPreview_EmptyInputs(t *testing.T) {
-	_, err := RunWithPreview([]string{}, func(i int) string { return "" })
+	_, err := RunWithPreview([]Item{}, func(i int) string { return "" })
 	if err == nil {
 		t.Error("expected error for empty inputs")
 	}
@@ -47,6 +47,23 @@ func TestErrSelectionCancelled_Is(t *testing.T) {
 	err := ErrSelectionCancelled
 	if !errors.Is(err, ErrSelectionCancelled) {
 		t.Error("expected errors.Is to match ErrSelectionCancelled")
+	}
+}
+
+func TestItem(t *testing.T) {
+	item := Item{Key: "my_session", Display: "my_session (ms, foo-session)"}
+	if item.Key != "my_session" {
+		t.Errorf("expected Key 'my_session', got %q", item.Key)
+	}
+	if item.Display != "my_session (ms, foo-session)" {
+		t.Errorf("expected Display 'my_session (ms, foo-session)', got %q", item.Display)
+	}
+}
+
+func TestItem_NoAliases(t *testing.T) {
+	item := Item{Key: "simple", Display: "simple"}
+	if item.Key != item.Display {
+		t.Error("expected Key and Display to be equal for items without aliases")
 	}
 }
 

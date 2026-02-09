@@ -180,6 +180,86 @@ another:
 	}
 }
 
+func TestConfigFile_Get_ByAlias(t *testing.T) {
+	config := ConfigFile{
+		"my_session": {Root: "/tmp/my", Aliases: []string{"ms", "foo-session"}},
+		"work":       {Root: "/tmp/work"},
+	}
+
+	tests := []struct {
+		lookup    string
+		wantKey   string
+		wantFound bool
+	}{
+		{"ms", "my_session", true},
+		{"foo-session", "my_session", true},
+		{"MS", "my_session", true},          // case-insensitive alias
+		{"Foo-Session", "my_session", true}, // case-insensitive alias
+		{"my_session", "my_session", true},  // exact key still works
+		{"work", "work", true},
+		{"missing", "", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.lookup, func(t *testing.T) {
+			_, actualKey, ok := config.Get(tt.lookup)
+			if ok != tt.wantFound {
+				t.Errorf("Get(%q): found=%v, want %v", tt.lookup, ok, tt.wantFound)
+			}
+			if ok && actualKey != tt.wantKey {
+				t.Errorf("Get(%q): actualKey=%q, want %q", tt.lookup, actualKey, tt.wantKey)
+			}
+		})
+	}
+}
+
+func TestConfigFile_Get_KeyTakesPrecedenceOverAlias(t *testing.T) {
+	// If a key name matches another item's alias, the key should win
+	config := ConfigFile{
+		"ms":         {Root: "/tmp/ms"},
+		"my_session": {Root: "/tmp/my", Aliases: []string{"ms"}},
+	}
+
+	_, actualKey, ok := config.Get("ms")
+	if !ok {
+		t.Fatal("expected to find 'ms'")
+	}
+	if actualKey != "ms" {
+		t.Errorf("expected exact key match 'ms', got %q", actualKey)
+	}
+}
+
+func TestTmuxConfigItemInput_Aliases_YAML(t *testing.T) {
+	yamlData := `
+my_session:
+  root: ~/projects/foo
+  aliases: [ms, foo-session]
+  windows:
+    - ./src
+`
+
+	var config ConfigFile
+	err := yaml.Unmarshal([]byte(yamlData), &config)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	item, ok := config["my_session"]
+	if !ok {
+		t.Fatal("expected 'my_session' config")
+	}
+
+	if len(item.Aliases) != 2 {
+		t.Fatalf("expected 2 aliases, got %d", len(item.Aliases))
+	}
+	if item.Aliases[0] != "ms" {
+		t.Errorf("expected first alias 'ms', got %q", item.Aliases[0])
+	}
+	if item.Aliases[1] != "foo-session" {
+		t.Errorf("expected second alias 'foo-session', got %q", item.Aliases[1])
+	}
+}
+
 func TestConfigFile_Get_ExactMatch(t *testing.T) {
 	config := ConfigFile{
 		"notes": {Root: "/tmp/notes"},

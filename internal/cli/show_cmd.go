@@ -37,12 +37,9 @@ func runShow(cmd *cobra.Command, args []string) error {
 
 	// If no key, use fzf
 	if key == "" {
-		keys := make([]string, 0, len(allConfig))
-		for k := range allConfig {
-			keys = append(keys, k)
-		}
+		items := buildFzfItems(allConfig)
 
-		selected, err := fzf.Run(keys, fzf.Options{})
+		selected, err := fzf.Run(items, fzf.Options{})
 		if err != nil {
 			return err
 		}

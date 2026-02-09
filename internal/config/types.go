@@ -17,7 +17,9 @@ type GlobalConfig struct {
 // ConfigFile represents the top-level config file: map of session name -> config
 type ConfigFile map[string]TmuxConfigItemInput
 
-// Get performs a case-insensitive lookup of a key in the config file.
+// Get performs a lookup of a key in the config file.
+// It first tries exact key match, then case-insensitive key match,
+// then matches against aliases (case-insensitive).
 // It returns the config item, the actual key as stored in the config, and whether it was found.
 func (c ConfigFile) Get(key string) (TmuxConfigItemInput, string, bool) {
 	// Try exact match first
@@ -31,6 +33,14 @@ func (c ConfigFile) Get(key string) (TmuxConfigItemInput, string, bool) {
 			return v, k, true
 		}
 	}
+	// Fall back to alias match (case-insensitive)
+	for k, v := range c {
+		for _, alias := range v.Aliases {
+			if strings.ToLower(alias) == lower {
+				return v, k, true
+			}
+		}
+	}
 	return TmuxConfigItemInput{}, "", false
 }
 
@@ -38,6 +48,7 @@ func (c ConfigFile) Get(key string) (TmuxConfigItemInput, string, bool) {
 type TmuxConfigItemInput struct {
 	Root        string            `yaml:"root"`
 	Name        string            `yaml:"name,omitempty"`
+	Aliases     []string          `yaml:"aliases,omitempty"`
 	BlankWindow bool              `yaml:"blank_window,omitempty"`
 	Windows     []TmuxWindowInput `yaml:"windows,omitempty"`
 }

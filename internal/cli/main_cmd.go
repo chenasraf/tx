@@ -24,12 +24,9 @@ func runMain(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		keys := make([]string, 0, len(info.Merged.Config))
-		for k := range info.Merged.Config {
-			keys = append(keys, k)
-		}
+		items := buildFzfItems(info.Merged.Config)
 
-		selected, err := fzf.Run(keys, fzf.Options{})
+		selected, err := fzf.Run(items, fzf.Options{})
 		if err != nil {
 			return err
 		}

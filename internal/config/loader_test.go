@@ -150,6 +150,42 @@ func TestMergeConfigs(t *testing.T) {
 	}
 }
 
+func TestMergeConfigs_Aliases(t *testing.T) {
+	config1 := ConfigFile{
+		"project": {Root: "/tmp/p1", Aliases: []string{"p1", "proj"}},
+	}
+
+	config2 := ConfigFile{
+		"project": {Root: "/tmp/p2", Aliases: []string{"p2"}},
+	}
+
+	merged := mergeConfigs(config1, config2)
+
+	// Aliases should be overridden by config2
+	if len(merged["project"].Aliases) != 1 {
+		t.Errorf("expected 1 alias, got %d", len(merged["project"].Aliases))
+	}
+	if merged["project"].Aliases[0] != "p2" {
+		t.Errorf("expected alias 'p2', got %q", merged["project"].Aliases[0])
+	}
+}
+
+func TestMergeConfigs_AliasesPreserved(t *testing.T) {
+	config1 := ConfigFile{
+		"project": {Root: "/tmp/p1", Aliases: []string{"p1", "proj"}},
+	}
+
+	config2 := ConfigFile{
+		"project": {Root: "/tmp/p2"}, // No aliases - should preserve config1's aliases
+	}
+
+	merged := mergeConfigs(config1, config2)
+
+	if len(merged["project"].Aliases) != 2 {
+		t.Errorf("expected 2 aliases preserved, got %d", len(merged["project"].Aliases))
+	}
+}
+
 func TestMergeConfigs_Nil(t *testing.T) {
 	config1 := ConfigFile{
 		"project1": {Root: "/tmp/p1"},
