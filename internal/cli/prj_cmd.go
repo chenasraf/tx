@@ -78,7 +78,7 @@ func runPrj(cmd *cobra.Command, args []string) error {
 	if name == "" {
 		items := make([]fzf.Item, len(projects))
 		for i, p := range projects {
-			items[i] = fzf.Item{Key: p, Display: p}
+			items[i] = fzf.Item{Key: p, Name: p}
 		}
 		selected, err := fzf.Run(items, fzf.Options{})
 		if err != nil {

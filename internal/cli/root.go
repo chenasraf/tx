@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/chenasraf/tx/internal/config"
 	"github.com/chenasraf/tx/internal/exec"
@@ -80,15 +79,11 @@ func completeSessionNames(cmd *cobra.Command, args []string, toComplete string) 
 	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
-// buildFzfItems creates fzf items from a config file, including aliases in the display string
+// buildFzfItems creates fzf items from a config file
 func buildFzfItems(cfg config.ConfigFile) []fzf.Item {
 	items := make([]fzf.Item, 0, len(cfg))
 	for k, v := range cfg {
-		display := k
-		if len(v.Aliases) > 0 {
-			display = k + " (" + strings.Join(v.Aliases, ", ") + ")"
-		}
-		items = append(items, fzf.Item{Key: k, Display: display})
+		items = append(items, fzf.Item{Key: k, Name: k, Aliases: v.Aliases})
 	}
 	return items
 }

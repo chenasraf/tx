@@ -33,16 +33,6 @@ func TestRun_EmptyInputs(t *testing.T) {
 	}
 }
 
-func TestRunWithPreview_EmptyInputs(t *testing.T) {
-	_, err := RunWithPreview([]Item{}, func(i int) string { return "" })
-	if err == nil {
-		t.Error("expected error for empty inputs")
-	}
-	if !errors.Is(err, ErrSelectionCancelled) {
-		t.Errorf("expected ErrSelectionCancelled, got %v", err)
-	}
-}
-
 func TestErrSelectionCancelled_Is(t *testing.T) {
 	err := ErrSelectionCancelled
 	if !errors.Is(err, ErrSelectionCancelled) {
@@ -51,25 +41,24 @@ func TestErrSelectionCancelled_Is(t *testing.T) {
 }
 
 func TestItem(t *testing.T) {
-	item := Item{Key: "my_session", Display: "my_session (ms, foo-session)"}
+	item := Item{Key: "my_session", Name: "my_session", Aliases: []string{"ms", "foo-session"}}
 	if item.Key != "my_session" {
 		t.Errorf("expected Key 'my_session', got %q", item.Key)
 	}
-	if item.Display != "my_session (ms, foo-session)" {
-		t.Errorf("expected Display 'my_session (ms, foo-session)', got %q", item.Display)
+	if item.Name != "my_session" {
+		t.Errorf("expected Name 'my_session', got %q", item.Name)
+	}
+	if len(item.Aliases) != 2 {
+		t.Errorf("expected 2 aliases, got %d", len(item.Aliases))
 	}
 }
 
 func TestItem_NoAliases(t *testing.T) {
-	item := Item{Key: "simple", Display: "simple"}
-	if item.Key != item.Display {
-		t.Error("expected Key and Display to be equal for items without aliases")
+	item := Item{Key: "simple", Name: "simple"}
+	if item.Key != item.Name {
+		t.Error("expected Key and Name to be equal for items without aliases")
+	}
+	if len(item.Aliases) != 0 {
+		t.Error("expected no aliases")
 	}
 }
-
-// Note: Full integration tests for the fuzzy finder require:
-// 1. A terminal environment
-// 2. A way to simulate user input
-//
-// The Run and RunWithPreview functions are tested implicitly through
-// CLI integration tests. Unit tests focus on edge cases and error handling.
