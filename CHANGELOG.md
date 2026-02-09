@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/chenasraf/tx/compare/v1.4.0...v1.4.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* pgup/pgdown scroll ([1b80378](https://github.com/chenasraf/tx/commit/1b803786b82ffecf8cd0691ea4605dac8246ed68))
+
 ## [1.4.0](https://github.com/chenasraf/tx/compare/v1.3.0...v1.4.0) (2026-02-09)
 
 
