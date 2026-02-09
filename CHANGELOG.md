@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/chenasraf/tx/compare/v1.3.0...v1.4.0) (2026-02-09)
+
+
+### Features
+
+* add support for aliases ([7534382](https://github.com/chenasraf/tx/commit/7534382360f8b02ebadf575c53ed55dbd14e1047))
+* new UI ([cf1018a](https://github.com/chenasraf/tx/commit/cf1018abc3ff108f5f7802ea7ef9fa881955e24f))
+
 ## [1.3.0](https://github.com/chenasraf/tx/compare/v1.2.1...v1.3.0) (2026-02-08)
 
 
