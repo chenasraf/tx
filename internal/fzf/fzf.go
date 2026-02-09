@@ -111,6 +111,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
+		case tea.KeyPgUp:
+			half := (m.height - 1) / 2
+			if half < 1 {
+				half = 1
+			}
+			m.cursor += half
+			if m.cursor >= len(m.filtered) {
+				m.cursor = len(m.filtered) - 1
+			}
+			m.clampScroll()
+			return m, nil
+
+		case tea.KeyPgDown:
+			half := (m.height - 1) / 2
+			if half < 1 {
+				half = 1
+			}
+			m.cursor -= half
+			if m.cursor < 0 {
+				m.cursor = 0
+			}
+			m.clampScroll()
+			return m, nil
+
 		case tea.KeyRunes:
 			m.query += string(msg.Runes)
 			m.refilter()
