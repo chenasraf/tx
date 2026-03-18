@@ -66,10 +66,20 @@ func ParseConfig(key string, item TmuxConfigItemInput) ParsedTmuxConfigItem {
 		parsedWindows = append(parsedWindows, parseWindow(w, root))
 	}
 
+	// Resolve initial window: per-session > global > default (1)
+	initialWindow := 1
+	if ConfiguredInitialWindow != nil {
+		initialWindow = *ConfiguredInitialWindow
+	}
+	if item.InitialWindow != nil {
+		initialWindow = *item.InitialWindow
+	}
+
 	return ParsedTmuxConfigItem{
-		Name:    name,
-		Root:    root,
-		Windows: parsedWindows,
+		Name:          name,
+		Root:          root,
+		InitialWindow: initialWindow,
+		Windows:       parsedWindows,
 	}
 }
 

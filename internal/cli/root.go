@@ -105,6 +105,10 @@ func initConfig(cmd *cobra.Command, args []string) error {
 		if globalConfig.NamedLayouts != nil {
 			config.ConfiguredNamedLayouts = globalConfig.NamedLayouts
 		}
+		// Apply initial window from config
+		if globalConfig.InitialWindow != nil {
+			config.ConfiguredInitialWindow = globalConfig.InitialWindow
+		}
 	}
 	return nil
 }

@@ -12,6 +12,7 @@ type GlobalConfig struct {
 	ProjectsPath  string                     `yaml:"projects_path,omitempty"`
 	DefaultLayout *TmuxPaneLayout            `yaml:"default_layout,omitempty"`
 	NamedLayouts  map[string]*TmuxPaneLayout `yaml:"named_layouts,omitempty"`
+	InitialWindow *int                       `yaml:"initial_window,omitempty"`
 }
 
 // ConfigFile represents the top-level config file: map of session name -> config
@@ -46,11 +47,12 @@ func (c ConfigFile) Get(key string) (TmuxConfigItemInput, string, bool) {
 
 // TmuxConfigItemInput represents a single tmux session configuration
 type TmuxConfigItemInput struct {
-	Root        string            `yaml:"root"`
-	Name        string            `yaml:"name,omitempty"`
-	Aliases     []string          `yaml:"aliases,omitempty"`
-	BlankWindow bool              `yaml:"blank_window,omitempty"`
-	Windows     []TmuxWindowInput `yaml:"windows,omitempty"`
+	Root          string            `yaml:"root"`
+	Name          string            `yaml:"name,omitempty"`
+	Aliases       []string          `yaml:"aliases,omitempty"`
+	BlankWindow   bool              `yaml:"blank_window,omitempty"`
+	InitialWindow *int              `yaml:"initial_window,omitempty"`
+	Windows       []TmuxWindowInput `yaml:"windows,omitempty"`
 }
 
 // TmuxWindowInput can be either a string (directory path) or a TmuxWindow struct
@@ -144,9 +146,10 @@ type TmuxSplitLayout struct {
 
 // ParsedTmuxConfigItem is the resolved/parsed version of TmuxConfigItemInput
 type ParsedTmuxConfigItem struct {
-	Name    string
-	Root    string
-	Windows []ParsedTmuxWindow
+	Name          string
+	Root          string
+	InitialWindow int
+	Windows       []ParsedTmuxWindow
 }
 
 // ParsedTmuxWindow is the resolved/parsed version of a window
@@ -167,6 +170,9 @@ var ConfiguredDefaultLayout *TmuxPaneLayout
 
 // ConfiguredNamedLayouts holds user-configured named layouts (set from .config)
 var ConfiguredNamedLayouts map[string]*TmuxPaneLayout
+
+// ConfiguredInitialWindow holds the user-configured default initial window (set from .config)
+var ConfiguredInitialWindow *int
 
 // GetDefaultLayout returns the configured default layout or the hardcoded default
 func GetDefaultLayout() *TmuxPaneLayout {

@@ -152,6 +152,14 @@ webapp:
             cwd: .
             cmd: npm run watch
 
+# Session with initial window override
+webapp:
+  root: ~/Dev/webapp
+  initial_window: 0 # open on the "general" window instead of the first configured one
+  windows:
+    - ./src
+    - ./lib
+
 # Session with complex layout
 fullstack:
   root: ~/Dev/fullstack
@@ -250,12 +258,13 @@ myproject:
 
 #### Available Settings
 
-| Setting          | Description                                       |
-| ---------------- | ------------------------------------------------- |
-| `shell`          | Shell to use for command execution                |
-| `projects_path`  | Directory for `tx prj` command (required for prj) |
-| `default_layout` | Default pane layout for new windows (see below)   |
-| `named_layouts`  | Reusable named layouts (see below)                |
+| Setting          | Description                                                          |
+| ---------------- | -------------------------------------------------------------------- |
+| `shell`          | Shell to use for command execution                                   |
+| `projects_path`  | Directory for `tx prj` command (required for prj)                    |
+| `default_layout` | Default pane layout for new windows (see below)                      |
+| `named_layouts`  | Reusable named layouts (see below)                                   |
+| `initial_window` | Window index to select on session creation (default: `1`, see below) |
 
 #### Default Layout
 
@@ -319,10 +328,30 @@ myproject:
   windows:
     - name: main
       cwd: .
-      layout: dev      # references the "dev" named layout
+      layout: dev # references the "dev" named layout
     - name: logs
       cwd: ./logs
-      layout: simple   # references the "simple" named layout
+      layout: simple # references the "simple" named layout
+```
+
+#### Initial Window
+
+The `initial_window` setting controls which window is selected when a new session is created. Window
+`0` is the "general" window (created automatically with the session), and configured windows start
+at index `1`. The default is `1` (the first configured window).
+
+This can be set globally under `.config` and overridden per session:
+
+```yaml
+.config:
+  initial_window: 1 # global default
+
+myproject:
+  root: ~/Dev/myproject
+  initial_window: 0 # override: start on the "general" window
+  windows:
+    - ./src
+    - ./lib
 ```
 
 #### Shell Resolution Order
