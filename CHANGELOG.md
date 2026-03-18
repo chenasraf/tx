@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/chenasraf/tx/compare/v1.4.1...v1.5.0) (2026-03-18)
+
+
+### Features
+
+* initial_window option ([3f82e19](https://github.com/chenasraf/tx/commit/3f82e194bb3352d7a8b889c2d190a118a0d0dd60))
+
 ## [1.4.1](https://github.com/chenasraf/tx/compare/v1.4.0...v1.4.1) (2026-02-09)
 
 
