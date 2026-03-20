@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// dirFix expands ~ to home directory
-func dirFix(dir string) string {
+// DirFix expands ~ to home directory
+func DirFix(dir string) string {
 	if strings.HasPrefix(dir, "~") {
 		if home, err := os.UserHomeDir(); err == nil {
 			return filepath.Join(home, dir[1:])
@@ -36,7 +36,7 @@ func NameFix(name string) string {
 
 // ParseConfig parses a raw config item into a resolved ParsedTmuxConfigItem
 func ParseConfig(key string, item TmuxConfigItemInput) ParsedTmuxConfigItem {
-	root := dirFix(item.Root)
+	root := DirFix(item.Root)
 
 	name := item.Name
 	if name == "" {
@@ -87,7 +87,7 @@ func ParseConfig(key string, item TmuxConfigItemInput) ParsedTmuxConfigItem {
 func parseWindow(w TmuxWindowInput, root string) ParsedTmuxWindow {
 	if w.IsString {
 		// Window is just a directory path
-		resolvedCwd := dirFix(resolvePath(root, w.String))
+		resolvedCwd := DirFix(resolvePath(root, w.String))
 		return ParsedTmuxWindow{
 			Name:   NameFix(filepath.Base(resolvedCwd)),
 			Cwd:    resolvedCwd,
@@ -105,7 +105,7 @@ func parseWindow(w TmuxWindowInput, root string) ParsedTmuxWindow {
 	}
 
 	// Window is a struct
-	resolvedCwd := dirFix(resolvePath(root, w.Window.Cwd))
+	resolvedCwd := DirFix(resolvePath(root, w.Window.Cwd))
 	windowName := w.Window.Name
 	if windowName == "" {
 		windowName = NameFix(filepath.Base(resolvedCwd))

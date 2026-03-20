@@ -225,23 +225,23 @@ func TestGetSearchedPaths(t *testing.T) {
 		t.Error("expected at least some search paths")
 	}
 
-	// Should contain both tmux and tmux_local patterns
+	// Should contain tmux patterns
 	hasTmux := false
-	hasTmuxLocal := false
 	for _, p := range paths {
 		if filepath.Base(p) == ".tmux.yaml" || filepath.Base(p) == ".tmux.yml" {
 			hasTmux = true
-		}
-		if filepath.Base(p) == ".tmux_local.yaml" || filepath.Base(p) == ".tmux_local.yml" {
-			hasTmuxLocal = true
 		}
 	}
 
 	if !hasTmux {
 		t.Error("expected paths to contain .tmux.yaml patterns")
 	}
-	if !hasTmuxLocal {
-		t.Error("expected paths to contain .tmux_local.yaml patterns")
+
+	// Should NOT contain tmux_local patterns (replaced by include mechanism)
+	for _, p := range paths {
+		if filepath.Base(p) == ".tmux_local.yaml" || filepath.Base(p) == ".tmux_local.yml" {
+			t.Error("should not contain tmux_local patterns")
+		}
 	}
 }
 
@@ -544,5 +544,188 @@ testproject:
 
 	if _, ok := result.Config["testproject"]; !ok {
 		t.Error("expected config to contain 'testproject'")
+	}
+}
+
+func TestResolveIncludePath(t *testing.T) {
+	home, _ := os.UserHomeDir()
+
+	tests := []struct {
+		name       string
+		include    string
+		parentPath string
+		expected   string
+	}{
+		{"absolute path", "/etc/tmux.yaml", "/home/user/.tmux.yaml", "/etc/tmux.yaml"},
+		{"tilde path", "~/local.yaml", "/home/user/.tmux.yaml", filepath.Join(home, "local.yaml")},
+		{"relative path", "local.yaml", "/home/user/.tmux.yaml", "/home/user/local.yaml"},
+		{"relative subdir", "conf/extra.yaml", "/home/user/.tmux.yaml", "/home/user/conf/extra.yaml"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := resolveIncludePath(tt.include, tt.parentPath)
+			if result != tt.expected {
+				t.Errorf("resolveIncludePath(%q, %q) = %q, expected %q", tt.include, tt.parentPath, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestGetTmuxConfigFileInfo_WithIncludes(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create included config file
+	includedPath := filepath.Join(tmpDir, "extra.yaml")
+	includedContent := `
+extraproject:
+  root: /tmp/extra
+`
+	if err := os.WriteFile(includedPath, []byte(includedContent), 0644); err != nil {
+		t.Fatalf("failed to write included config: %v", err)
+	}
+
+	// Create main config that includes the extra file
+	configPath := filepath.Join(tmpDir, ".tmux.yaml")
+	mainContent := `.config:
+  include:
+    - extra.yaml
+
+mainproject:
+  root: /tmp/main
+`
+	if err := os.WriteFile(configPath, []byte(mainContent), 0644); err != nil {
+		t.Fatalf("failed to write main config: %v", err)
+	}
+
+	// Set XDG_CONFIG_HOME to temp directory
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
+
+	info, err := GetTmuxConfigFileInfo()
+	if err != nil {
+		t.Fatalf("failed to get config info: %v", err)
+	}
+
+	// Should have 1 included config
+	if len(info.Included) != 1 {
+		t.Fatalf("expected 1 included config, got %d", len(info.Included))
+	}
+
+	// Merged config should contain both projects
+	if _, ok := info.Merged.Config["mainproject"]; !ok {
+		t.Error("expected merged config to contain 'mainproject'")
+	}
+	if _, ok := info.Merged.Config["extraproject"]; !ok {
+		t.Error("expected merged config to contain 'extraproject'")
+	}
+}
+
+func TestGetTmuxConfigFileInfo_NestedIncludes(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create deeply nested config
+	deepPath := filepath.Join(tmpDir, "deep.yaml")
+	deepContent := `
+deepproject:
+  root: /tmp/deep
+`
+	if err := os.WriteFile(deepPath, []byte(deepContent), 0644); err != nil {
+		t.Fatalf("failed to write deep config: %v", err)
+	}
+
+	// Create mid-level config that includes deep
+	midPath := filepath.Join(tmpDir, "mid.yaml")
+	midContent := `.config:
+  include:
+    - deep.yaml
+
+midproject:
+  root: /tmp/mid
+`
+	if err := os.WriteFile(midPath, []byte(midContent), 0644); err != nil {
+		t.Fatalf("failed to write mid config: %v", err)
+	}
+
+	// Create main config that includes mid
+	configPath := filepath.Join(tmpDir, ".tmux.yaml")
+	mainContent := `.config:
+  include:
+    - mid.yaml
+
+mainproject:
+  root: /tmp/main
+`
+	if err := os.WriteFile(configPath, []byte(mainContent), 0644); err != nil {
+		t.Fatalf("failed to write main config: %v", err)
+	}
+
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
+
+	info, err := GetTmuxConfigFileInfo()
+	if err != nil {
+		t.Fatalf("failed to get config info: %v", err)
+	}
+
+	// Should have 2 included configs (deep is loaded before mid due to recursion order)
+	if len(info.Included) != 2 {
+		t.Fatalf("expected 2 included configs, got %d", len(info.Included))
+	}
+
+	// Merged config should contain all three projects
+	for _, name := range []string{"mainproject", "midproject", "deepproject"} {
+		if _, ok := info.Merged.Config[name]; !ok {
+			t.Errorf("expected merged config to contain %q", name)
+		}
+	}
+}
+
+func TestGetTmuxConfigFileInfo_CircularIncludes(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create two configs that include each other
+	aPath := filepath.Join(tmpDir, ".tmux.yaml")
+	bPath := filepath.Join(tmpDir, "b.yaml")
+
+	aContent := `.config:
+  include:
+    - b.yaml
+
+projectA:
+  root: /tmp/a
+`
+	bContent := `.config:
+  include:
+    - .tmux.yaml
+
+projectB:
+  root: /tmp/b
+`
+	if err := os.WriteFile(aPath, []byte(aContent), 0644); err != nil {
+		t.Fatalf("failed to write config a: %v", err)
+	}
+	if err := os.WriteFile(bPath, []byte(bContent), 0644); err != nil {
+		t.Fatalf("failed to write config b: %v", err)
+	}
+
+	oldXDG := os.Getenv("XDG_CONFIG_HOME")
+	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
+	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
+
+	// Should not infinite loop
+	info, err := GetTmuxConfigFileInfo()
+	if err != nil {
+		t.Fatalf("failed to get config info: %v", err)
+	}
+
+	// Should have both projects merged
+	if _, ok := info.Merged.Config["projectA"]; !ok {
+		t.Error("expected merged config to contain 'projectA'")
+	}
+	if _, ok := info.Merged.Config["projectB"]; !ok {
+		t.Error("expected merged config to contain 'projectB'")
 	}
 }

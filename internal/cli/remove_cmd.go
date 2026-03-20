@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var removeLocal bool
+var removeConfigFile string
 
 var removeCmd = &cobra.Command{
 	Use:               "remove <key>",
@@ -20,7 +20,7 @@ var removeCmd = &cobra.Command{
 }
 
 func init() {
-	removeCmd.Flags().BoolVarP(&removeLocal, "local", "l", false, "Remove from local config file")
+	removeCmd.Flags().StringVarP(&removeConfigFile, "config", "c", "", "Remove from a specific config file")
 }
 
 func runRemove(cmd *cobra.Command, args []string) error {
@@ -38,7 +38,7 @@ func runRemove(cmd *cobra.Command, args []string) error {
 		return NewUserError("tmux config item '" + key + "' not found")
 	}
 
-	err = config.RemoveConfigFromFile(actualKey, removeLocal, opts.Dry)
+	err = config.RemoveConfigFromFile(actualKey, removeConfigFile, opts.Dry)
 	if err != nil {
 		return err
 	}

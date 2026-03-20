@@ -60,11 +60,11 @@ func TestCreateCmd_Flags(t *testing.T) {
 		t.Errorf("expected -S shorthand, got %q", saveOnlyFlag.Shorthand)
 	}
 
-	localFlag := createCmd.Flags().Lookup("local")
-	if localFlag == nil {
-		t.Fatal("expected --local flag")
+	configFlag := createCmd.Flags().Lookup("config")
+	if configFlag == nil {
+		t.Fatal("expected --config flag")
 	}
-	if localFlag.Shorthand != "l" {
-		t.Errorf("expected -l shorthand, got %q", localFlag.Shorthand)
+	if configFlag.Shorthand != "c" {
+		t.Errorf("expected -c shorthand, got %q", configFlag.Shorthand)
 	}
 }

@@ -39,12 +39,12 @@ func TestPrjCmd_Flags(t *testing.T) {
 		t.Errorf("expected -s shorthand, got %q", saveFlag.Shorthand)
 	}
 
-	localFlag := prjCmd.Flags().Lookup("local")
-	if localFlag == nil {
-		t.Fatal("expected --local flag")
+	configFlag := prjCmd.Flags().Lookup("config")
+	if configFlag == nil {
+		t.Fatal("expected --config flag")
 	}
-	if localFlag.Shorthand != "l" {
-		t.Errorf("expected -l shorthand, got %q", localFlag.Shorthand)
+	if configFlag.Shorthand != "c" {
+		t.Errorf("expected -c shorthand, got %q", configFlag.Shorthand)
 	}
 }
 

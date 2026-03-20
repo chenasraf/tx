@@ -17,10 +17,10 @@ type ConfigResult struct {
 	Filepath string
 }
 
-// ConfigInfo holds global, local, and merged configurations
+// ConfigInfo holds global, included, and merged configurations
 type ConfigInfo struct {
 	Global       *ConfigResult
-	Local        *ConfigResult
+	Included     []*ConfigResult
 	Merged       *ConfigResult
 	GlobalConfig *GlobalConfig
 }
@@ -208,43 +208,115 @@ func mergeGlobalConfigs(configs ...*GlobalConfig) *GlobalConfig {
 	return result
 }
 
-// GetTmuxConfigFileInfo returns the global, local, and merged configurations
+// resolveIncludePath resolves an include path relative to the config file that contains it.
+// Absolute paths are returned as-is. Paths starting with ~ are expanded. Relative paths
+// are resolved against the directory of the parent config file.
+func resolveIncludePath(includePath, parentConfigPath string) string {
+	// Expand ~
+	includePath = DirFix(includePath)
+
+	// If absolute, return as-is
+	if filepath.IsAbs(includePath) {
+		return includePath
+	}
+
+	// Resolve relative to parent config file's directory
+	parentDir := filepath.Dir(parentConfigPath)
+	return filepath.Join(parentDir, includePath)
+}
+
+// loadIncludedConfigs loads all configs referenced by the include list in .config.
+// It returns the loaded config results and the merged global config from all includes.
+// Already-visited paths are tracked to prevent circular includes.
+func loadIncludedConfigs(parentPath string, includes []string, visited map[string]bool) ([]*ConfigResult, []*GlobalConfig) {
+	var results []*ConfigResult
+	var globalConfigs []*GlobalConfig
+
+	for _, inc := range includes {
+		resolvedPath := resolveIncludePath(inc, parentPath)
+
+		// Resolve symlinks for dedup
+		realPath, err := filepath.EvalSymlinks(resolvedPath)
+		if err != nil {
+			realPath = resolvedPath
+		}
+
+		if visited[realPath] {
+			continue
+		}
+		visited[realPath] = true
+
+		cfg, err := loadConfigFile(resolvedPath)
+		if err != nil {
+			continue
+		}
+
+		result := &ConfigResult{
+			Config:   cfg,
+			Filepath: resolvedPath,
+		}
+
+		gc, _ := loadGlobalConfig(resolvedPath)
+
+		// Recursively load nested includes
+		if gc != nil && len(gc.Include) > 0 {
+			nestedResults, nestedGCs := loadIncludedConfigs(resolvedPath, gc.Include, visited)
+			results = append(results, nestedResults...)
+			globalConfigs = append(globalConfigs, nestedGCs...)
+		}
+
+		results = append(results, result)
+		globalConfigs = append(globalConfigs, gc)
+	}
+
+	return results, globalConfigs
+}
+
+// GetTmuxConfigFileInfo returns the global, included, and merged configurations
 func GetTmuxConfigFileInfo() (*ConfigInfo, error) {
 	info := &ConfigInfo{}
-
-	var globalGlobalConfig, localGlobalConfig *GlobalConfig
 
 	// Search for global config
 	if result, err := findConfigFile("tmux"); err == nil {
 		info.Global = result
-		// Load global config section
-		globalGlobalConfig, _ = loadGlobalConfig(result.Filepath)
 	}
 
-	// Search for local config
-	if result, err := findConfigFile("tmux_local"); err == nil {
-		info.Local = result
-		// Load global config section from local
-		localGlobalConfig, _ = loadGlobalConfig(result.Filepath)
-	}
-
-	if info.Global == nil && info.Local == nil {
+	if info.Global == nil {
 		return nil, ErrNoConfigFound
 	}
 
+	// Load global config section
+	baseGlobalConfig, _ := loadGlobalConfig(info.Global.Filepath)
+
+	// Process includes from .config.include
+	var allGlobalConfigs []*GlobalConfig
+	allGlobalConfigs = append(allGlobalConfigs, baseGlobalConfig)
+
+	configsToMerge := []ConfigFile{info.Global.Config}
+
+	if baseGlobalConfig != nil && len(baseGlobalConfig.Include) > 0 {
+		visited := map[string]bool{}
+		// Mark the base config as visited
+		if realPath, err := filepath.EvalSymlinks(info.Global.Filepath); err == nil {
+			visited[realPath] = true
+		} else {
+			visited[info.Global.Filepath] = true
+		}
+
+		includedResults, includedGCs := loadIncludedConfigs(info.Global.Filepath, baseGlobalConfig.Include, visited)
+		info.Included = includedResults
+
+		for _, r := range includedResults {
+			configsToMerge = append(configsToMerge, r.Config)
+		}
+		allGlobalConfigs = append(allGlobalConfigs, includedGCs...)
+	}
+
 	// Merge global configs
-	info.GlobalConfig = mergeGlobalConfigs(globalGlobalConfig, localGlobalConfig)
+	info.GlobalConfig = mergeGlobalConfigs(allGlobalConfigs...)
 
 	// Merge session configs
-	var globalConfig, localConfig ConfigFile
-	if info.Global != nil {
-		globalConfig = info.Global.Config
-	}
-	if info.Local != nil {
-		localConfig = info.Local.Config
-	}
-
-	merged := mergeConfigs(globalConfig, localConfig)
+	merged := mergeConfigs(configsToMerge...)
 	info.Merged = &ConfigResult{
 		Config:   merged,
 		Filepath: "merged",
@@ -271,16 +343,31 @@ func GetGlobalConfig() (*GlobalConfig, error) {
 	return info.GlobalConfig, nil
 }
 
+// FindLegacyLocalConfig searches for a tmux_local config file using the v1.x
+// search patterns. Returns the file path if found, or empty string if not.
+func FindLegacyLocalConfig() string {
+	patterns := searchPatterns("tmux_local")
+	dirs := searchDirs()
+
+	for _, dir := range dirs {
+		for _, pattern := range patterns {
+			path := filepath.Join(dir, pattern)
+			if _, err := os.Stat(path); err == nil {
+				return path
+			}
+		}
+	}
+	return ""
+}
+
 // GetSearchedPaths returns the paths that would be searched for config files
 func GetSearchedPaths() []string {
 	var paths []string
 	dirs := searchDirs()
-	for _, name := range []string{"tmux", "tmux_local"} {
-		patterns := searchPatterns(name)
-		for _, dir := range dirs {
-			for _, pattern := range patterns {
-				paths = append(paths, filepath.Join(dir, pattern))
-			}
+	patterns := searchPatterns("tmux")
+	for _, dir := range dirs {
+		for _, pattern := range patterns {
+			paths = append(paths, filepath.Join(dir, pattern))
 		}
 	}
 	return paths

@@ -13,6 +13,7 @@ type GlobalConfig struct {
 	DefaultLayout *TmuxPaneLayout            `yaml:"default_layout,omitempty"`
 	NamedLayouts  map[string]*TmuxPaneLayout `yaml:"named_layouts,omitempty"`
 	InitialWindow *int                       `yaml:"initial_window,omitempty"`
+	Include       []string                   `yaml:"include,omitempty"`
 }
 
 // ConfigFile represents the top-level config file: map of session name -> config

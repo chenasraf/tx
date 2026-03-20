@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	prjSave  bool
-	prjLocal bool
+	prjSave       bool
+	prjConfigFile string
 )
 
 var prjCmd = &cobra.Command{
@@ -28,7 +28,7 @@ var prjCmd = &cobra.Command{
 
 func init() {
 	prjCmd.Flags().BoolVarP(&prjSave, "save", "s", false, "Save the session in config file")
-	prjCmd.Flags().BoolVarP(&prjLocal, "local", "l", false, "Save the session in local config file")
+	prjCmd.Flags().StringVarP(&prjConfigFile, "config", "c", "", "Save to a specific config file")
 }
 
 // ErrNoProjectsPath is returned when projects_path is not configured
@@ -113,7 +113,7 @@ func runPrj(cmd *cobra.Command, args []string) error {
 
 	// Save if requested
 	if prjSave {
-		if err := config.AddSimpleConfigToFile(parsed, prjLocal, opts.Dry); err != nil {
+		if err := config.AddSimpleConfigToFile(parsed, prjConfigFile, opts.Dry); err != nil {
 			return err
 		}
 	}

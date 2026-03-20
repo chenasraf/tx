@@ -14,7 +14,7 @@ A tmux session manager that creates sessions from YAML configuration files.
 - Complex pane splits (horizontal/vertical, nested)
 - Run commands in panes on session creation
 - Fuzzy finder for session selection
-- Global and local config file support (with merging)
+- Config file includes (compose configs from multiple files)
 - Quick project session creation from configurable projects directory
 
 ---
@@ -70,7 +70,7 @@ tx show <name> -j     # JSON output
 
 # Edit configuration file
 tx edit
-tx edit -l            # edit local config
+tx edit -c ~/local.yaml   # edit a specific config file
 
 # Create a temporary session
 tx create
@@ -87,7 +87,7 @@ tx attach [name]
 
 # Remove a configuration
 tx rm <name>
-tx rm <name> -l       # remove from local config
+tx rm <name> -c ~/local.yaml  # remove from a specific config file
 
 # Kill a running session
 tx kill               # kill current session
@@ -117,12 +117,9 @@ File patterns searched:
 - `tmux.yaml` / `tmux.yml`
 - `.tmux.yaml` / `.tmux.yml`
 
-Local config files (`.tmux_local.yaml`) are merged with global config, with local values taking
-precedence.
-
-Local configs are useful for setups where a global config is shared among computers, and you want
-per-computer configs which might be gitignored. This allows you to not check-in your local configs
-while also being able to share a config that might be checked into git.
+You can compose your configuration from multiple files using the `include` setting under `.config`.
+Included files are merged with the main config, with later includes taking precedence. See
+[Config Includes](#config-includes) for details.
 
 ### Configuration Format
 
@@ -265,6 +262,7 @@ myproject:
 | `default_layout` | Default pane layout for new windows (see below)                      |
 | `named_layouts`  | Reusable named layouts (see below)                                   |
 | `initial_window` | Window index to select on session creation (default: `1`, see below) |
+| `include`        | List of additional config files to merge (see below)                 |
 
 #### Default Layout
 
@@ -354,6 +352,34 @@ myproject:
     - ./lib
 ```
 
+#### Config Includes
+
+The `include` setting lets you compose your configuration from multiple files. This is useful for
+separating machine-specific configs from shared ones, or simply organizing a large config into
+smaller pieces.
+
+```yaml
+# ~/.tmux.yaml
+.config:
+  include:
+    - ./local.yaml # relative to this file's directory
+    - ~/shared/team.yaml # ~ is expanded to home directory
+    - /etc/tx/company.yaml # absolute paths work too
+
+myproject:
+  root: ~/Dev/myproject
+```
+
+**Path resolution:**
+
+- **Relative paths** are resolved relative to the directory of the config file containing the
+  `include`
+- **`~`** is expanded to the home directory
+- **Absolute paths** are used as-is
+
+Included files can themselves contain `include` lists (nested includes). Circular includes are
+detected and skipped. Later includes take precedence over earlier ones when merging.
+
 #### Shell Resolution Order
 
 The shell used for executing commands is determined in this order:
@@ -426,6 +452,62 @@ tx prj myproject
 
 # Open and save to config for future use
 tx prj myproject -s
+```
+
+---
+
+## Migrating from v1.x to v2.x
+
+Run `tx migrate` to automatically migrate your configuration. It finds your existing `tmux_local`
+config file and adds it as an `include` in your main config. Use `tx migrate -d` for a dry run to
+preview changes before applying.
+
+### Local config replaced with includes
+
+In v1.x, tx automatically searched for a `tmux_local.yaml` (or `.tmux_local.yaml`) file and merged
+it with the global config. In v2.x, this implicit behavior is replaced with an explicit `include`
+mechanism in `.config`.
+
+**Before (v1.x):**
+
+```
+~/.tmux.yaml          # global config (auto-discovered)
+~/.tmux_local.yaml    # local config (auto-discovered and merged)
+```
+
+**After (v2.x):**
+
+```yaml
+# ~/.tmux.yaml
+.config:
+  include:
+    - ./tmux_local.yaml # explicitly include the local config
+```
+
+Your `tmux_local.yaml` file contents do not need to change — just add the `include` entry to your
+main config.
+
+### `--local` flag replaced with `--config`
+
+Commands that accepted `--local` / `-l` (such as `edit`, `create`, `remove`, `prj`) now use
+`--config` / `-c` instead, which takes a file path argument.
+
+**Before (v1.x):**
+
+```bash
+tx edit -l
+tx rm myproject -l
+tx create -s -l
+tx prj myproject -s -l
+```
+
+**After (v2.x):**
+
+```bash
+tx edit -c ~/tmux_local.yaml
+tx rm myproject -c ~/tmux_local.yaml
+tx create -s -c ~/tmux_local.yaml
+tx prj myproject -s -c ~/tmux_local.yaml
 ```
 
 ---

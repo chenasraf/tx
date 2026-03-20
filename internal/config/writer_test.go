@@ -79,7 +79,7 @@ existing:
 	}
 
 	// Dry run should not modify file
-	err = AddSimpleConfigToFile(config, false, true)
+	err = AddSimpleConfigToFile(config, "", true)
 	if err != nil {
 		t.Fatalf("dry run failed: %v", err)
 	}
@@ -118,7 +118,7 @@ func TestAddSimpleConfigToFile(t *testing.T) {
 		},
 	}
 
-	err = AddSimpleConfigToFile(config, false, false)
+	err = AddSimpleConfigToFile(config, "", false)
 	if err != nil {
 		t.Fatalf("failed to add config: %v", err)
 	}
@@ -164,7 +164,7 @@ third:
 	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
 	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
-	err = RemoveConfigFromFile("second", false, false)
+	err = RemoveConfigFromFile("second", "", false)
 	if err != nil {
 		t.Fatalf("failed to remove config: %v", err)
 	}
@@ -202,7 +202,7 @@ func TestRemoveConfigFromFile_NotFound(t *testing.T) {
 	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
 	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
-	err = RemoveConfigFromFile("nonexistent", false, false)
+	err = RemoveConfigFromFile("nonexistent", "", false)
 	if err == nil {
 		t.Error("expected error when removing nonexistent config")
 	}
@@ -226,7 +226,7 @@ func TestRemoveConfigFromFile_DryRun(t *testing.T) {
 	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
 	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
-	err = RemoveConfigFromFile("toremove", false, true)
+	err = RemoveConfigFromFile("toremove", "", true)
 	if err != nil {
 		t.Fatalf("dry run failed: %v", err)
 	}
@@ -262,7 +262,7 @@ last:
 	_ = os.Setenv("XDG_CONFIG_HOME", tmpDir)
 	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDG) }()
 
-	err = RemoveConfigFromFile("last", false, false)
+	err = RemoveConfigFromFile("last", "", false)
 	if err != nil {
 		t.Fatalf("failed to remove last config: %v", err)
 	}

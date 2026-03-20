@@ -89,8 +89,8 @@ func runList(cmd *cobra.Command, args []string) error {
 	if configInfo.Global != nil {
 		fmt.Println("  global:", configInfo.Global.Filepath)
 	}
-	if configInfo.Local != nil {
-		fmt.Println("  local:", configInfo.Local.Filepath)
+	for _, inc := range configInfo.Included {
+		fmt.Println("  included:", inc.Filepath)
 	}
 	fmt.Println()
 

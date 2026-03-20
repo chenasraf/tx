@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	createRootDir  string
-	createWindows  []string
-	createSave     bool
-	createSaveOnly bool
-	createLocal    bool
+	createRootDir    string
+	createWindows    []string
+	createSave       bool
+	createSaveOnly   bool
+	createConfigFile string
 )
 
 var createCmd = &cobra.Command{
@@ -30,7 +30,7 @@ func init() {
 	createCmd.Flags().StringArrayVarP(&createWindows, "window", "w", nil, "Add a window with the given directory (relative to root)")
 	createCmd.Flags().BoolVarP(&createSave, "save", "s", false, "Save the session to config file")
 	createCmd.Flags().BoolVarP(&createSaveOnly, "save-only", "S", false, "Save to config without creating session")
-	createCmd.Flags().BoolVarP(&createLocal, "local", "l", false, "Save to local config file")
+	createCmd.Flags().StringVarP(&createConfigFile, "config", "c", "", "Save to a specific config file")
 }
 
 func runCreate(cmd *cobra.Command, args []string) error {
@@ -81,7 +81,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 
 	// Save if requested
 	if createSave || createSaveOnly {
-		if err := config.AddSimpleConfigToFile(parsed, createLocal, opts.Dry); err != nil {
+		if err := config.AddSimpleConfigToFile(parsed, createConfigFile, opts.Dry); err != nil {
 			return err
 		}
 	}

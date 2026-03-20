@@ -28,12 +28,12 @@ func TestRemoveCmd_Aliases(t *testing.T) {
 }
 
 func TestRemoveCmd_Flags(t *testing.T) {
-	localFlag := removeCmd.Flags().Lookup("local")
-	if localFlag == nil {
-		t.Fatal("expected --local flag")
+	configFlag := removeCmd.Flags().Lookup("config")
+	if configFlag == nil {
+		t.Fatal("expected --config flag")
 	}
-	if localFlag.Shorthand != "l" {
-		t.Errorf("expected -l shorthand, got %q", localFlag.Shorthand)
+	if configFlag.Shorthand != "c" {
+		t.Errorf("expected -c shorthand, got %q", configFlag.Shorthand)
 	}
 }
 

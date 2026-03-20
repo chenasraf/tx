@@ -45,9 +45,9 @@ func TestDirFix(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result := dirFix(tt.input)
+			result := DirFix(tt.input)
 			if result != tt.expected {
-				t.Errorf("dirFix(%q) = %q, expected %q", tt.input, result, tt.expected)
+				t.Errorf("DirFix(%q) = %q, expected %q", tt.input, result, tt.expected)
 			}
 		})
 	}

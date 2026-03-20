@@ -13,22 +13,32 @@ var ErrConfigNotFound = errors.New("tmux config file not found")
 // ErrConfigItemExists is returned when trying to add an item that already exists
 var ErrConfigItemExists = errors.New("tmux config item already exists")
 
-// AddSimpleConfigToFile appends a simple config to the config file
-func AddSimpleConfigToFile(config ParsedTmuxConfigItem, local bool, dryRun bool) error {
+// resolveConfigTarget returns the config file path to write to.
+// If configFile is non-empty, it is expanded (~ resolved) and used directly.
+// Otherwise the global config file is used.
+func resolveConfigTarget(configFile string) (string, error) {
+	if configFile != "" {
+		return DirFix(configFile), nil
+	}
+
 	files, err := GetTmuxConfigFileInfo()
 	if err != nil {
+		return "", err
+	}
+
+	if files.Global == nil {
+		return "", ErrConfigNotFound
+	}
+
+	return files.Global.Filepath, nil
+}
+
+// AddSimpleConfigToFile appends a simple config to the config file.
+// If configFile is non-empty, it targets that file; otherwise the global config is used.
+func AddSimpleConfigToFile(config ParsedTmuxConfigItem, configFile string, dryRun bool) error {
+	targetPath, err := resolveConfigTarget(configFile)
+	if err != nil {
 		return err
-	}
-
-	var file *ConfigResult
-	if local {
-		file = files.Local
-	} else {
-		file = files.Global
-	}
-
-	if file == nil {
-		return ErrConfigNotFound
 	}
 
 	// Check if config already exists
@@ -57,13 +67,13 @@ func AddSimpleConfigToFile(config ParsedTmuxConfigItem, local bool, dryRun bool)
 	}
 
 	if dryRun {
-		fmt.Println("Would have saved config to", file.Filepath)
+		fmt.Println("Would have saved config to", targetPath)
 		fmt.Println("Contents:")
 		fmt.Println(sb.String())
 		return nil
 	}
 
-	f, err := os.OpenFile(file.Filepath, os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(targetPath, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -75,26 +85,16 @@ func AddSimpleConfigToFile(config ParsedTmuxConfigItem, local bool, dryRun bool)
 	return err
 }
 
-// RemoveConfigFromFile removes a config item from the config file
-func RemoveConfigFromFile(key string, local bool, dryRun bool) error {
-	files, err := GetTmuxConfigFileInfo()
+// RemoveConfigFromFile removes a config item from the config file.
+// If configFile is non-empty, it targets that file; otherwise the global config is used.
+func RemoveConfigFromFile(key string, configFile string, dryRun bool) error {
+	targetPath, err := resolveConfigTarget(configFile)
 	if err != nil {
 		return err
 	}
 
-	var file *ConfigResult
-	if local {
-		file = files.Local
-	} else {
-		file = files.Global
-	}
-
-	if file == nil {
-		return ErrConfigNotFound
-	}
-
 	// Read file contents
-	data, err := os.ReadFile(file.Filepath)
+	data, err := os.ReadFile(targetPath)
 	if err != nil {
 		return err
 	}
@@ -129,13 +129,13 @@ func RemoveConfigFromFile(key string, local bool, dryRun bool) error {
 	result := strings.TrimRight(strings.Join(newContents, "\n"), "\n")
 
 	if dryRun {
-		fmt.Println("Would have written to", file.Filepath)
+		fmt.Println("Would have written to", targetPath)
 		fmt.Println("New contents:")
 		fmt.Println(result)
 		return nil
 	}
 
-	return os.WriteFile(file.Filepath, []byte(result), 0644)
+	return os.WriteFile(targetPath, []byte(result), 0644)
 }
 
 // dirFixForWrite replaces home directory with ~

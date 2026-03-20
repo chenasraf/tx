@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var editLocal bool
+var editConfigFile string
 
 var editCmd = &cobra.Command{
 	Use:     "edit",
@@ -18,24 +18,20 @@ var editCmd = &cobra.Command{
 }
 
 func init() {
-	editCmd.Flags().BoolVarP(&editLocal, "local", "l", false, "Edit the local config file")
+	editCmd.Flags().StringVarP(&editConfigFile, "config", "c", "", "Edit a specific config file")
 }
 
 func runEdit(cmd *cobra.Command, args []string) error {
 	opts := GetOpts()
 
-	configInfo, err := config.GetTmuxConfigFileInfo()
-	if err != nil {
-		return err
-	}
-
 	var filepath string
-	if editLocal {
-		if configInfo.Local == nil {
-			return NewUserError("local config file not found")
-		}
-		filepath = configInfo.Local.Filepath
+	if editConfigFile != "" {
+		filepath = config.DirFix(editConfigFile)
 	} else {
+		configInfo, err := config.GetTmuxConfigFileInfo()
+		if err != nil {
+			return err
+		}
 		if configInfo.Global == nil {
 			return NewUserError("global config file not found")
 		}
