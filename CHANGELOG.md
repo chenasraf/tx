@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/chenasraf/tx/compare/v1.5.0...v2.0.0) (2026-03-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* tmux_local.yaml is no longer auto-discovered. Run `tx migrate` to add it as an explicit include. The `--local`/`-l` flag is removed in favor of `--config`/`-c`.
+
+### Features
+
+* replace tmux_local with config file includes ([2e801cd](https://github.com/chenasraf/tx/commit/2e801cd91e49d2547731a01fc97a48804aa3e7b2))
+
 ## [1.5.0](https://github.com/chenasraf/tx/compare/v1.4.1...v1.5.0) (2026-03-18)
 
 
