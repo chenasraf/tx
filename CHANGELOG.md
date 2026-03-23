@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/chenasraf/tx/compare/v2.0.0...v2.1.0) (2026-03-23)
+
+
+### Features
+
+* accept multiple session names for rm/kill ([296e135](https://github.com/chenasraf/tx/commit/296e13549e2e962c4b2287f214ca03ecc9359d85))
+
 ## [2.0.0](https://github.com/chenasraf/tx/compare/v1.5.0...v2.0.0) (2026-03-20)
 
 
