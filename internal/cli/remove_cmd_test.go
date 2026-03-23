@@ -9,7 +9,7 @@ func TestRemoveCmd_Exists(t *testing.T) {
 		t.Error("expected removeCmd to not be nil")
 	}
 
-	if removeCmd.Use != "remove <key>" {
+	if removeCmd.Use != "remove <key...>" {
 		t.Errorf("unexpected Use: %q", removeCmd.Use)
 	}
 }

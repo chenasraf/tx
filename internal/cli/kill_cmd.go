@@ -7,10 +7,9 @@ import (
 )
 
 var killCmd = &cobra.Command{
-	Use:               "kill [session]",
+	Use:               "kill [session...]",
 	Aliases:           []string{"k"},
-	Short:             "Kill a running tmux session (current session if no arg)",
-	Args:              cobra.MaximumNArgs(1),
+	Short:             "Kill running tmux sessions (current session if no arg)",
 	RunE:              runKill,
 	ValidArgsFunction: completeRunningSessions,
 }
@@ -19,24 +18,26 @@ func runKill(cmd *cobra.Command, args []string) error {
 	opts := GetOpts()
 
 	if len(args) > 0 {
-		sessionName := args[0]
-		// Check if session exists
-		if !tmux.SessionExists(opts, sessionName) {
-			return NewUserError("tmux session '" + sessionName + "' does not exist")
+		var errs []error
+		for _, sessionName := range args {
+			if !tmux.SessionExists(opts, sessionName) {
+				errs = append(errs, NewUserError("tmux session '"+sessionName+"' does not exist"))
+				continue
+			}
+			if err := tmux.KillSession(opts, sessionName); err != nil {
+				errs = append(errs, err)
+			}
 		}
-		return tmux.KillSession(opts, sessionName)
+		return joinErrors(errs)
 	}
 
 	// No arg - kill current session
 	return exec.RunCommand(opts, "tmux kill-session")
 }
 
-// completeRunningSessions returns running session names for shell completion
+// completeRunningSessions returns running session names for shell completion,
+// excluding sessions already provided as arguments.
 func completeRunningSessions(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	// Don't complete if we already have an argument
-	if len(args) > 0 {
-		return nil, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	return tmux.GetSessionNames(), cobra.ShellCompDirectiveNoFileComp
+	all := tmux.GetSessionNames()
+	return filterUsed(all, args), cobra.ShellCompDirectiveNoFileComp
 }

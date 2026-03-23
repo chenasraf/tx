@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -41,6 +42,11 @@ func NewUserError(message string) *UserError {
 	return &UserError{Message: message}
 }
 
+// joinErrors combines multiple errors into one, returning nil if there are none.
+func joinErrors(errs []error) error {
+	return errors.Join(errs...)
+}
+
 // rootCmd represents the base command
 var rootCmd = &cobra.Command{
 	Use:   "tx [session]",
@@ -77,6 +83,39 @@ func completeSessionNames(cmd *cobra.Command, args []string, toComplete string) 
 	}
 
 	return names, cobra.ShellCompDirectiveNoFileComp
+}
+
+// completeSessionNamesMulti returns session names excluding already-provided args.
+func completeSessionNamesMulti(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	cfg, err := config.GetTmuxConfig()
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	var names []string
+	for name, item := range cfg {
+		if name != config.ConfigKey {
+			names = append(names, name)
+			names = append(names, item.Aliases...)
+		}
+	}
+
+	return filterUsed(names, args), cobra.ShellCompDirectiveNoFileComp
+}
+
+// filterUsed returns items from candidates that are not already in used.
+func filterUsed(candidates []string, used []string) []string {
+	seen := make(map[string]bool, len(used))
+	for _, u := range used {
+		seen[u] = true
+	}
+	var result []string
+	for _, c := range candidates {
+		if !seen[c] {
+			result = append(result, c)
+		}
+	}
+	return result
 }
 
 // buildFzfItems creates fzf items from a config file

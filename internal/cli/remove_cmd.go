@@ -11,12 +11,12 @@ import (
 var removeConfigFile string
 
 var removeCmd = &cobra.Command{
-	Use:               "remove <key>",
+	Use:               "remove <key...>",
 	Aliases:           []string{"rm"},
-	Short:             "Remove a tmux workspace from the config file",
-	Args:              cobra.ExactArgs(1),
+	Short:             "Remove tmux workspaces from the config file",
+	Args:              cobra.MinimumNArgs(1),
 	RunE:              runRemove,
-	ValidArgsFunction: completeSessionNames,
+	ValidArgsFunction: completeSessionNamesMulti,
 }
 
 func init() {
@@ -25,30 +25,32 @@ func init() {
 
 func runRemove(cmd *cobra.Command, args []string) error {
 	opts := GetOpts()
-	key := args[0]
 
-	// Verify the key exists
 	allConfig, err := config.GetTmuxConfig()
 	if err != nil {
 		return err
 	}
 
-	_, actualKey, exists := allConfig.Get(key)
-	if !exists {
-		return NewUserError("tmux config item '" + key + "' not found")
+	var errs []error
+	for _, key := range args {
+		_, actualKey, exists := allConfig.Get(key)
+		if !exists {
+			errs = append(errs, NewUserError("tmux config item '"+key+"' not found"))
+			continue
+		}
+
+		err = config.RemoveConfigFromFile(actualKey, removeConfigFile, opts.Dry)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+
+		if !opts.Dry {
+			fmt.Printf("Removed tmux config item '%s'\n", key)
+		}
+
+		exec.Log(opts, "Removed config item:", key)
 	}
 
-	err = config.RemoveConfigFromFile(actualKey, removeConfigFile, opts.Dry)
-	if err != nil {
-		return err
-	}
-
-	if !opts.Dry {
-		fmt.Printf("Removed tmux config item '%s'\n", key)
-	}
-
-	// Log action in verbose/dry mode
-	exec.Log(opts, "Removed config item:", key)
-
-	return nil
+	return joinErrors(errs)
 }
