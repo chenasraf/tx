@@ -141,7 +141,8 @@ type TmuxPaneLayout struct {
 
 // TmuxSplitLayout represents a split configuration
 type TmuxSplitLayout struct {
-	Direction string          `yaml:"direction"` // "h" or "v"
+	Direction string          `yaml:"direction"`      // "h" or "v"
+	Size      int             `yaml:"size,omitempty"` // percentage (1-100) of the split given to the child pane
 	Child     *TmuxPaneLayout `yaml:"child"`
 }
 

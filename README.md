@@ -85,13 +85,15 @@ tx prj -s             # save to config
 # Attach to existing session
 tx attach [name]
 
-# Remove a configuration
+# Remove configurations
 tx rm <name>
+tx rm foo bar baz             # remove multiple at once
 tx rm <name> -c ~/local.yaml  # remove from a specific config file
 
-# Kill a running session
+# Kill running sessions
 tx kill               # kill current session
 tx kill <name>        # kill specific session
+tx kill foo bar baz   # kill multiple sessions
 ```
 
 ### Global Flags
@@ -202,7 +204,27 @@ windows:
 
 ### Layout Configuration
 
-Layouts define pane splits and commands:
+Layouts define pane splits and commands. When no layout is specified, the following default is used:
+
+```yaml
+# Default layout - horizontal split with vertical sub-split and clock
+layout:
+  cwd: .
+  split:
+    direction: h
+    child:
+      cwd: .
+      split:
+        direction: v
+        child:
+          cwd: .
+          clock: true
+```
+
+You can customize the default for all windows via [`default_layout`](#default-layout) in global
+settings, or override per window.
+
+#### Layout Formats
 
 **String** - just a directory:
 
@@ -229,15 +251,35 @@ layout:
   clock: false # show tmux clock mode
   split:
     direction: h # h (horizontal) or v (vertical)
+    size: 30 # percentage of space for the child pane (1-100, default: 50)
     child:
       cwd: ./other
       cmd: npm test
       split: # nested splits
         direction: v
+        size: 40
         child:
           cwd: .
           clock: true # show clock in this pane
 ```
+
+#### Pane Options
+
+| Setting | Description                              |
+| ------- | ---------------------------------------- |
+| `cwd`   | Working directory (defaults to window's) |
+| `cmd`   | Command to run in the pane               |
+| `zoom`  | Zoom this pane (default: false)          |
+| `clock` | Show tmux clock mode (default: false)    |
+| `split` | Split this pane (see below)              |
+
+#### Split Options
+
+| Setting     | Description                                            |
+| ----------- | ------------------------------------------------------ |
+| `direction` | `h` (horizontal / side-by-side) or `v` (vertical / stacked) |
+| `size`      | Percentage of space for the child pane (1-100, default: 50)  |
+| `child`     | Pane configuration for the new pane created by the split     |
 
 ### Global Settings
 
@@ -266,40 +308,14 @@ myproject:
 
 #### Default Layout
 
-The `default_layout` setting configures the default pane arrangement for windows. Each pane can
-have:
-
-| Setting | Description                                                   |
-| ------- | ------------------------------------------------------------- |
-| `cwd`   | Working directory (defaults to window's directory)            |
-| `cmd`   | Command to run (defaults to none)                             |
-| `clock` | Show tmux clock mode (defaults to false)                      |
-| `split` | Create a split with direction (`h` or `v`) and a `child` pane |
-
-Example - single pane with clock:
+The `default_layout` setting overrides the built-in default pane arrangement for all windows.
+It accepts the same [pane options](#pane-options) as a regular layout.
 
 ```yaml
 .config:
   default_layout:
     cwd: .
     clock: true
-```
-
-Example - horizontal split with vertical sub-split (default):
-
-```yaml
-.config:
-  default_layout:
-    cwd: .
-    split:
-      direction: h
-      child:
-        cwd: .
-        split:
-          direction: v
-          child:
-            cwd: .
-            clock: true
 ```
 
 #### Named Layouts

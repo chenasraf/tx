@@ -188,6 +188,7 @@ func parsePaneLayout(pane *TmuxPaneLayout, root string) TmuxPaneLayout {
 	if pane.Split != nil {
 		result.Split = &TmuxSplitLayout{
 			Direction: pane.Split.Direction,
+			Size:      pane.Split.Size,
 		}
 		if result.Split.Direction == "" {
 			result.Split.Direction = "h"
@@ -208,6 +209,7 @@ func copyTmuxSplitLayout(split *TmuxSplitLayout, root string) *TmuxSplitLayout {
 	}
 	result := &TmuxSplitLayout{
 		Direction: split.Direction,
+		Size:      split.Size,
 	}
 	if split.Child != nil {
 		child := TmuxPaneLayout{

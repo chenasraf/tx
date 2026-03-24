@@ -119,10 +119,14 @@ func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, wi
 		// Increment pane index for the new pane created by split
 		*paneIndex++
 
-		commands = append(commands, fmt.Sprintf(
+		splitCmd := fmt.Sprintf(
 			"tmux split-window -%s -t %s:%s -c %s",
 			direction, sessionName, windowName, cwd,
-		))
+		)
+		if pane.Split.Size > 0 && pane.Split.Size <= 100 {
+			splitCmd += fmt.Sprintf(" -p %d", pane.Split.Size)
+		}
+		commands = append(commands, splitCmd)
 
 		// Handle child pane
 		if pane.Split.Child != nil {
