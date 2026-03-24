@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/chenasraf/tx/compare/v2.1.0...v2.2.0) (2026-03-24)
+
+
+### Features
+
+* allow pane size config ([d067a6e](https://github.com/chenasraf/tx/commit/d067a6e964f3ccd6c7e1cf322aa3997e943381c5))
+
 ## [2.1.0](https://github.com/chenasraf/tx/compare/v2.0.0...v2.1.0) (2026-03-23)
 
 
