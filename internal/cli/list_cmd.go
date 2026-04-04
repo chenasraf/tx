@@ -2,10 +2,12 @@ package cli
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/chenasraf/tx/internal/config"
+	"github.com/chenasraf/tx/internal/table"
 	"github.com/chenasraf/tx/internal/tmux"
 	"github.com/spf13/cobra"
 )
@@ -61,13 +63,7 @@ func runList(cmd *cobra.Command, args []string) error {
 	sessionsOutput, err := tmux.ListSessions(opts)
 	sessionsStr := ""
 	if err == nil && sessionsOutput != "" {
-		// Format sessions output
-		lines := strings.Split(strings.TrimSpace(sessionsOutput), "\n")
-		for _, line := range lines {
-			if line != "" {
-				sessionsStr += "  " + line + "\n"
-			}
-		}
+		sessionsStr = formatSessionsTable(sessionsOutput, "  ")
 	} else {
 		sessionsStr = "  No tmux sessions\n"
 	}
@@ -106,4 +102,29 @@ func runList(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+var sessionLineRe = regexp.MustCompile(`^([^:]+):\s*(\d+)\s+windows?\s*\(created\s+([^)]+)\)\s*(.*)$`)
+
+// formatSessionsTable parses `tmux ls` output and renders it as a bordered
+// table with headers. Each output line is prefixed with indent.
+func formatSessionsTable(raw, indent string) string {
+	lines := strings.Split(strings.TrimSpace(raw), "\n")
+	rows := make([][]string, 0, len(lines))
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		m := sessionLineRe.FindStringSubmatch(line)
+		if m == nil {
+			// Fallback: dump the whole line into the Name column
+			rows = append(rows, []string{line, "", "", ""})
+			continue
+		}
+		status := strings.TrimSpace(m[4])
+		status = strings.TrimPrefix(status, "(")
+		status = strings.TrimSuffix(status, ")")
+		rows = append(rows, []string{m[1], m[2], m[3], status})
+	}
+	return table.Render([]string{"Name", "Windows", "Created", "Status"}, rows, indent)
 }
