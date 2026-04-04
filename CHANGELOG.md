@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/chenasraf/tx/compare/v2.2.0...v2.3.0) (2026-04-04)
+
+
+### Features
+
+* ls sessions as table ([7a9ea1b](https://github.com/chenasraf/tx/commit/7a9ea1b41d1fff87cbd160409453502b56dad29d))
+
 ## [2.2.0](https://github.com/chenasraf/tx/compare/v2.1.0...v2.2.0) (2026-03-24)
 
 
