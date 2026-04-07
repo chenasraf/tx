@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/chenasraf/tx/compare/v2.3.0...v2.4.0) (2026-04-07)
+
+
+### Features
+
+* add background flag ([54fa59b](https://github.com/chenasraf/tx/commit/54fa59be464c226e9da0510b8d2a290023782d4a))
+
 ## [2.3.0](https://github.com/chenasraf/tx/compare/v2.2.0...v2.3.0) (2026-04-04)
 
 
