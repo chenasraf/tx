@@ -8,8 +8,9 @@ import (
 	"github.com/chenasraf/tx/internal/exec"
 )
 
-// CreateFromConfig creates a tmux session from a parsed config
-func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem) error {
+// CreateFromConfig creates a tmux session from a parsed config.
+// If background is true, the session is created but not attached to.
+func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem, background bool) error {
 	root := tmuxConfig.Root
 	windows := tmuxConfig.Windows
 	sessionName := config.NameFix(tmuxConfig.Name)
@@ -19,6 +20,10 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem) er
 
 	// Check if session already exists
 	if SessionExists(opts, sessionName) {
+		if background {
+			exec.Log(opts, fmt.Sprintf("tmux session %s already exists (background mode, not attaching)", sessionName))
+			return nil
+		}
 		exec.Log(opts, fmt.Sprintf("tmux session %s already exists, attaching...", sessionName))
 		return AttachToSession(opts, sessionName)
 	}
@@ -73,7 +78,10 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem) er
 		}
 	}
 
-	// Attach to the session
+	// Attach to the session unless background mode
+	if background {
+		return nil
+	}
 	return AttachToSession(opts, sessionName)
 }
 

@@ -75,6 +75,10 @@ func runCreate(cmd *cobra.Command, args []string) error {
 
 	// Check if session exists
 	if tmux.SessionExists(opts, parsed.Name) {
+		if background {
+			exec.Log(opts, "Session already exists (background mode, not attaching)")
+			return nil
+		}
 		exec.Log(opts, "Session already exists, attaching")
 		return tmux.AttachToSession(opts, parsed.Name)
 	}
@@ -92,5 +96,5 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	}
 
 	// Create the session
-	return tmux.CreateFromConfig(opts, parsed)
+	return tmux.CreateFromConfig(opts, parsed, background)
 }

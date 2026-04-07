@@ -82,6 +82,11 @@ tx create -S          # save only (don't create)
 tx prj [name]
 tx prj -s             # save to config
 
+# Create session in background (don't switch to it)
+tx -b my-session
+tx create -b
+tx prj -b myproject
+
 # Attach to existing session
 tx attach [name]
 
@@ -98,10 +103,11 @@ tx kill foo bar baz   # kill multiple sessions
 
 ### Global Flags
 
-| Flag            | Description                               |
-| --------------- | ----------------------------------------- |
-| `-v, --verbose` | Verbose logging                           |
-| `-d, --dry`     | Dry run (show commands without executing) |
+| Flag               | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| `-V, --verbose`    | Verbose logging                                      |
+| `-d, --dry`        | Dry run (show commands without executing)            |
+| `-b, --background` | Create session in background without switching to it |
 
 ---
 
@@ -275,11 +281,11 @@ layout:
 
 #### Split Options
 
-| Setting     | Description                                            |
-| ----------- | ------------------------------------------------------ |
+| Setting     | Description                                                 |
+| ----------- | ----------------------------------------------------------- |
 | `direction` | `h` (horizontal / side-by-side) or `v` (vertical / stacked) |
-| `size`      | Percentage of space for the child pane (1-100, default: 50)  |
-| `child`     | Pane configuration for the new pane created by the split     |
+| `size`      | Percentage of space for the child pane (1-100, default: 50) |
+| `child`     | Pane configuration for the new pane created by the split    |
 
 ### Global Settings
 
@@ -308,8 +314,8 @@ myproject:
 
 #### Default Layout
 
-The `default_layout` setting overrides the built-in default pane arrangement for all windows.
-It accepts the same [pane options](#pane-options) as a regular layout.
+The `default_layout` setting overrides the built-in default pane arrangement for all windows. It
+accepts the same [pane options](#pane-options) as a regular layout.
 
 ```yaml
 .config:
@@ -446,6 +452,9 @@ tx create -r ~/myproject -w src -w lib -w test
 
 # Create and save to config
 tx create -r ~/myproject -s
+
+# Create in background (don't switch to it)
+tx create -b -r ~/myproject
 ```
 
 ### Project Workflow

@@ -251,7 +251,7 @@ func TestCreateFromConfig_DryRun(t *testing.T) {
 	}
 
 	// In dry mode, this should succeed without actually running tmux
-	err := CreateFromConfig(opts, tmuxConfig)
+	err := CreateFromConfig(opts, tmuxConfig, false)
 	if err != nil {
 		t.Errorf("expected no error in dry mode, got %v", err)
 	}
@@ -281,7 +281,7 @@ func TestCreateFromConfig_MultipleWindows(t *testing.T) {
 		},
 	}
 
-	err := CreateFromConfig(opts, tmuxConfig)
+	err := CreateFromConfig(opts, tmuxConfig, false)
 	if err != nil {
 		t.Errorf("expected no error in dry mode, got %v", err)
 	}

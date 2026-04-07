@@ -16,8 +16,9 @@ var (
 	Version string
 
 	// Global flags
-	verbose bool
-	dry     bool
+	verbose    bool
+	dry        bool
+	background bool
 )
 
 // GetOpts returns the current execution options
@@ -166,6 +167,7 @@ func init() {
 	// Global flags
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "V", false, "Verbose logging")
 	rootCmd.PersistentFlags().BoolVarP(&dry, "dry", "d", false, "Dry run (log commands, don't execute)")
+	rootCmd.PersistentFlags().BoolVarP(&background, "background", "b", false, "Create session in background without attaching")
 	rootCmd.Flags().BoolP("version", "v", false, "Print version")
 
 	// Add subcommands

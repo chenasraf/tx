@@ -119,7 +119,7 @@ func runPrj(cmd *cobra.Command, args []string) error {
 	}
 
 	// Create session
-	return tmux.CreateFromConfig(opts, parsed)
+	return tmux.CreateFromConfig(opts, parsed, background)
 }
 
 // getProjects returns directory names in the given path
