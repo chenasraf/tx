@@ -19,11 +19,28 @@ var (
 )
 
 var prjCmd = &cobra.Command{
-	Use:     "prj [name]",
-	Aliases: []string{"p"},
-	Short:   "Create a new tmux session from project folder",
-	Args:    cobra.MaximumNArgs(1),
-	RunE:    runPrj,
+	Use:               "prj [name]",
+	Aliases:           []string{"p"},
+	Short:             "Create a new tmux session from project folder",
+	Args:              cobra.MaximumNArgs(1),
+	RunE:              runPrj,
+	ValidArgsFunction: completeProjectNames,
+}
+
+// completeProjectNames returns project directory names for shell completion
+func completeProjectNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) > 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	projectsPath, err := getProjectsPath()
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	projects, err := getProjects(projectsPath)
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	return projects, cobra.ShellCompDirectiveNoFileComp
 }
 
 func init() {
