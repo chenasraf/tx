@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/chenasraf/tx/compare/v2.5.0...v2.5.1) (2026-05-28)
+
+
+### Bug Fixes
+
+* **tmux:** respect base-index and pane-base-index ([b12a90e](https://github.com/chenasraf/tx/commit/b12a90ec3c89cdd4589a4c3050fd9333ffc1445e))
+
 ## [2.5.0](https://github.com/chenasraf/tx/compare/v2.4.1...v2.5.0) (2026-05-28)
 
 
