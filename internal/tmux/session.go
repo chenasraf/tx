@@ -2,10 +2,45 @@ package tmux
 
 import (
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/chenasraf/tx/internal/exec"
 )
+
+// GetBaseIndex returns tmux's configured base-index (window numbering origin).
+// Returns 0 in dry mode or on error so tests stay deterministic.
+func GetBaseIndex(opts exec.Opts) int {
+	if opts.Dry {
+		return 0
+	}
+	return queryIntOption("base-index")
+}
+
+// GetPaneBaseIndex returns tmux's configured pane-base-index.
+// Returns 0 in dry mode or on error so tests stay deterministic.
+func GetPaneBaseIndex(opts exec.Opts) int {
+	if opts.Dry {
+		return 0
+	}
+	return queryIntOption("pane-base-index")
+}
+
+func queryIntOption(name string) int {
+	out, _, err := exec.GetCommandOutputSilent("tmux show-options -gv " + name)
+	if err != nil {
+		return 0
+	}
+	s := strings.TrimSpace(out)
+	if s == "" {
+		return 0
+	}
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return n
+}
 
 // SessionExists checks if a tmux session with the given name exists
 func SessionExists(opts exec.Opts, sessionName string) bool {

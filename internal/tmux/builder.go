@@ -30,6 +30,9 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem, ba
 
 	exec.Log(opts, fmt.Sprintf("tmux session %s does not exist, creating...", sessionName))
 
+	baseIndex := GetBaseIndex(opts)
+	paneBaseIndex := GetPaneBaseIndex(opts)
+
 	var commands []string
 
 	// Create the session
@@ -38,7 +41,8 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem, ba
 		sessionName, root,
 	))
 
-	// Create all windows
+	// Create all windows. The "general" window above lands at baseIndex,
+	// so user windows start at baseIndex+1.
 	for i, window := range windows {
 		dir := window.Cwd
 		windowName := window.Name
@@ -51,11 +55,10 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem, ba
 		// Create the window
 		commands = append(commands, fmt.Sprintf(
 			"tmux new-window -t %s:%d -n %s -c %s",
-			sessionName, i+1, windowName, dir,
+			sessionName, baseIndex+1+i, windowName, dir,
 		))
 
-		// Get pane commands - paneIndex starts at 0 for the window's initial pane
-		paneIndex := 0
+		paneIndex := paneBaseIndex
 		paneCommands, timePanes := getPaneCommands(opts, window.Layout, sessionName, windowName, root, &paneIndex)
 		commands = append(commands, paneCommands...)
 
@@ -65,11 +68,12 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem, ba
 		}
 
 		// Select first pane
-		commands = append(commands, fmt.Sprintf("tmux select-pane -t %s:%s.0", sessionName, windowName))
+		commands = append(commands, fmt.Sprintf("tmux select-pane -t %s:%s.%d", sessionName, windowName, paneBaseIndex))
 	}
 
-	// Select initial window
-	commands = append(commands, fmt.Sprintf("tmux select-window -t %s:%d", sessionName, tmuxConfig.InitialWindow))
+	// Select initial window — InitialWindow is a 0-based offset from the
+	// session's first window, so add baseIndex to get the actual tmux index.
+	commands = append(commands, fmt.Sprintf("tmux select-window -t %s:%d", sessionName, baseIndex+tmuxConfig.InitialWindow))
 
 	// Execute all commands
 	for _, command := range commands {
