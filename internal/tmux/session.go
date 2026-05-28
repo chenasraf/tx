@@ -76,7 +76,7 @@ func GetSessionNames() []string {
 	}
 
 	var names []string
-	for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
+	for line := range strings.SplitSeq(strings.TrimSpace(output), "\n") {
 		if line != "" {
 			names = append(names, line)
 		}
