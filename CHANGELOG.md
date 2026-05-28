@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/chenasraf/tx/compare/v2.4.1...v2.5.0) (2026-05-28)
+
+
+### Features
+
+* **cli:** autocomplete project names for prj ([9739424](https://github.com/chenasraf/tx/commit/973942440f3c4984e203023910689a4584c5683b))
+
 ## [2.4.1](https://github.com/chenasraf/tx/compare/v2.4.0...v2.4.1) (2026-04-21)
 
 
