@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.3](https://github.com/chenasraf/tx/compare/v2.5.2...v2.5.3) (2026-05-28)
+
+
+### Bug Fixes
+
+* **tmux:** query live base indices after session create ([a7b8439](https://github.com/chenasraf/tx/commit/a7b84398e7f146f2fd2cf4d747af879e6c0a3050))
+
 ## [2.5.2](https://github.com/chenasraf/tx/compare/v2.5.1...v2.5.2) (2026-05-28)
 
 
