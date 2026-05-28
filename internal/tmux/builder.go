@@ -30,16 +30,19 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem, ba
 
 	exec.Log(opts, fmt.Sprintf("tmux session %s does not exist, creating...", sessionName))
 
-	baseIndex := GetBaseIndex(opts)
-	paneBaseIndex := GetPaneBaseIndex(opts)
+	// Create the session immediately so subsequent commands can target it
+	// and so we can query the actual window/pane base indices the running
+	// server is using (show-options can return values that don't match what
+	// new-session actually applies, depending on when/how the server started).
+	createCmd := fmt.Sprintf("tmux new-session -d -s %s -n general -c %s; sleep 1", sessionName, root)
+	if err := exec.RunCommand(opts, createCmd); err != nil {
+		return fmt.Errorf("failed to execute: %s: %w", createCmd, err)
+	}
+
+	baseIndex := QueryTargetIndex(opts, sessionName+":general", "window_index")
+	paneBaseIndex := QueryTargetIndex(opts, sessionName+":general", "pane_index")
 
 	var commands []string
-
-	// Create the session
-	commands = append(commands, fmt.Sprintf(
-		"tmux new-session -d -s %s -n general -c %s; sleep 1",
-		sessionName, root,
-	))
 
 	// Create all windows. The "general" window above lands at baseIndex,
 	// so user windows start at baseIndex+1.

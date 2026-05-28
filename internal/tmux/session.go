@@ -1,12 +1,32 @@
 package tmux
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/chenasraf/tx/internal/exec"
 )
+
+// QueryTargetIndex reads a numeric format field from a live tmux target via
+// `display-message -p`. Used to get the actual window/pane index of an
+// existing window or pane, which is more reliable than show-options for
+// determining the server's effective base indices.
+func QueryTargetIndex(opts exec.Opts, target, field string) int {
+	if opts.Dry {
+		return 0
+	}
+	out, _, err := exec.GetCommandOutputSilent(fmt.Sprintf("tmux display-message -p -t %s '#{%s}'", target, field))
+	if err != nil {
+		return 0
+	}
+	n, err := strconv.Atoi(strings.TrimSpace(out))
+	if err != nil {
+		return 0
+	}
+	return n
+}
 
 // GetBaseIndex returns tmux's configured base-index (window numbering origin).
 // Returns 0 in dry mode or on error so tests stay deterministic.
