@@ -37,7 +37,7 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem, ba
 
 	// Create the session
 	commands = append(commands, fmt.Sprintf(
-		"tmux -f ~/.config/tmux/conf.tmux new-session -d -s %s -n general -c %s; sleep 1",
+		"tmux new-session -d -s %s -n general -c %s; sleep 1",
 		sessionName, root,
 	))
 
