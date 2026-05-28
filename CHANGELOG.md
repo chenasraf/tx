@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.2](https://github.com/chenasraf/tx/compare/v2.5.1...v2.5.2) (2026-05-28)
+
+
+### Bug Fixes
+
+* **tmux:** drop hardcoded -f config path ([9b7d899](https://github.com/chenasraf/tx/commit/9b7d8993898f2bea6f1e5499b488eaec698f3ac5))
+
 ## [2.5.1](https://github.com/chenasraf/tx/compare/v2.5.0...v2.5.1) (2026-05-28)
 
 
