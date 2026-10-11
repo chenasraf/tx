@@ -180,4 +180,5 @@ func init() {
 	rootCmd.AddCommand(prjCmd)
 	rootCmd.AddCommand(killCmd)
 	rootCmd.AddCommand(migrateCmd)
+	rootCmd.AddCommand(popupCmd)
 }
