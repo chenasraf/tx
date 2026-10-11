@@ -181,4 +181,5 @@ func init() {
 	rootCmd.AddCommand(killCmd)
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(popupCmd)
+	rootCmd.AddCommand(sessionsCmd)
 }

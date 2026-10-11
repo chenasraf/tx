@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
@@ -181,13 +182,14 @@ func show(s tmuxctl.Server, client, session, socket string, flags []string) (<-c
 	return closed, nil
 }
 
+// attached reports whether a terminal client is attached to session. Control-mode clients don't
+// count: a picker running in the session holds one, and it would keep the session looking in use.
 func attached(s tmuxctl.Server, session string) bool {
-	res, err := s.Exec([]string{"display-message", "-p", "-t", target(session), "#{session_attached}"})
+	res, err := s.Exec([]string{"list-clients", "-t", "=" + session, "-F", "#{client_control_mode}"})
 	if err != nil || len(res) == 0 {
 		return false
 	}
-	n := res[0].Text()
-	return n != "" && n != "0"
+	return slices.Contains(res[0].Lines, "0")
 }
 
 func owner(s tmuxctl.Server, session string) string {

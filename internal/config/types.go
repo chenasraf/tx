@@ -14,6 +14,35 @@ type GlobalConfig struct {
 	NamedLayouts  map[string]*TmuxPaneLayout `yaml:"named_layouts,omitempty"`
 	InitialWindow *int                       `yaml:"initial_window,omitempty"`
 	Include       []string                   `yaml:"include,omitempty"`
+	Picker        *PickerConfig              `yaml:"picker,omitempty"`
+}
+
+// PickerConfig holds settings for the session and agent pickers
+type PickerConfig struct {
+	// Size is the popup size: 0 for borderless full screen, 1-100 for a bordered popup at that
+	// percentage of the terminal.
+	Size *int `yaml:"size,omitempty"`
+	// Refresh is how often the preview re-captures pane contents, as a Go duration ("1s").
+	Refresh      string              `yaml:"refresh,omitempty"`
+	PreviewWidth PickerPreviewWidths `yaml:"preview_width,omitempty"`
+	Agents       PickerAgents        `yaml:"agents,omitempty"`
+	// Colors overrides theme colours by role (sky, blue, peach, ...) with #rrggbb values.
+	Colors map[string]string `yaml:"colors,omitempty"`
+}
+
+// PickerPreviewWidths is each picker's preview width, as a percentage of the popup width
+type PickerPreviewWidths struct {
+	Sessions int `yaml:"sessions,omitempty"`
+	Agents   int `yaml:"agents,omitempty"`
+}
+
+// PickerAgents selects which panes the agent picker lists
+type PickerAgents struct {
+	// Commands are process names, or /regex/ patterns matched against the full command line.
+	Commands []string `yaml:"commands,omitempty"`
+	// Match is auto (names against the process name, patterns against the command line), name, or
+	// args.
+	Match string `yaml:"match,omitempty"`
 }
 
 // ConfigFile represents the top-level config file: map of session name -> config
