@@ -152,6 +152,10 @@ func TestSessionStart(t *testing.T) {
 	if got := loaded(t, f).start(); got != "@2" {
 		t.Errorf("visible window: start = %s, want @2", got)
 	}
+	f.last = `\$10` // as tmux 3.4 prints it
+	if got := loaded(t, f).start(); got != "$10" {
+		t.Errorf("escaped session id: start = %s, want $10", got)
+	}
 }
 
 func TestSessionKill(t *testing.T) {

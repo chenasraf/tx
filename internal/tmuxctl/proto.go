@@ -3,7 +3,6 @@
 package tmuxctl
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -127,31 +126,45 @@ func blockFlags(tag string) int {
 
 // Quote makes s a single tmux command-language argument, taken literally: no environment
 // expansion, no ~, no command separators.
+//
+// Single quotes are literal in every tmux version, while the escapes double quotes accept vary
+// between versions. So s goes in single quotes, and only what they can't hold — a single quote,
+// and line breaks, which would end the command line — goes in a double-quoted piece; tmux joins
+// adjacent quoted pieces into one argument.
 func Quote(s string) string {
+	if s == "" {
+		return "''"
+	}
 	var b strings.Builder
 	b.Grow(len(s) + 2)
-	b.WriteByte('"')
+	open := false
 	for i := 0; i < len(s); i++ {
-		c := s[i]
-		switch c {
-		case '"', '\\', '$':
-			b.WriteByte('\\')
-			b.WriteByte(c)
+		var special string
+		switch s[i] {
+		case '\'':
+			special = `"'"`
 		case '\n':
-			b.WriteString(`\n`)
+			special = `"\n"`
 		case '\r':
-			b.WriteString(`\r`)
-		case '\t':
-			b.WriteString(`\t`)
-		default:
-			if c < 0x20 || c == 0x7f {
-				fmt.Fprintf(&b, `\%03o`, c)
-			} else {
-				b.WriteByte(c)
-			}
+			special = `"\r"`
 		}
+		if special != "" {
+			if open {
+				b.WriteByte('\'')
+				open = false
+			}
+			b.WriteString(special)
+			continue
+		}
+		if !open {
+			b.WriteByte('\'')
+			open = true
+		}
+		b.WriteByte(s[i])
 	}
-	b.WriteByte('"')
+	if open {
+		b.WriteByte('\'')
+	}
 	return b.String()
 }
 

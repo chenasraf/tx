@@ -24,8 +24,11 @@ func Current() Server {
 }
 
 // Command builds a tmux invocation against this server with $TMUX removed from its environment.
+//
+// -u marks the client as UTF-8 whatever the locale: tmux otherwise replaces tabs and non-ASCII
+// characters in a command's output with _, which breaks tab-separated formats.
 func (s Server) Command(args ...string) *exec.Cmd {
-	cmd := exec.Command("tmux", append(append([]string{}, s.Flags...), args...)...)
+	cmd := exec.Command("tmux", append(append([]string{"-u"}, s.Flags...), args...)...)
 	cmd.Env = withoutTMUX(os.Environ())
 	return cmd
 }

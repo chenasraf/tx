@@ -77,16 +77,18 @@ func TestParser_OutputThatLooksLikeProtocol(t *testing.T) {
 
 func TestQuote(t *testing.T) {
 	tests := map[string]string{
-		"plain":      `"plain"`,
-		`a"b`:        `"a\"b"`,
-		`back\slash`: `"back\\slash"`,
-		"$HOME":      `"\$HOME"`,
-		"~/x;y":      `"~/x;y"`,
-		"#{name}":    `"#{name}"`,
-		"a\nb\tc\rd": `"a\nb\tc\rd"`,
-		"esc\x1b[0m": `"esc\033[0m"`,
-		"漢字 é":       `"漢字 é"`,
-		"":           `""`,
+		"plain":      `'plain'`,
+		`a"b`:        `'a"b'`,
+		`back\slash`: `'back\slash'`,
+		"$HOME":      `'$HOME'`,
+		"~/x;y":      `'~/x;y'`,
+		"#{name}":    `'#{name}'`,
+		"it's":       `'it'"'"'s'`,
+		"'":          `"'"`,
+		"a\nb\tc\rd": "'a'\"\\n\"'b\tc'\"\\r\"'d'",
+		"esc\x1b[0m": "'esc\x1b[0m'",
+		"漢字 é":       `'漢字 é'`,
+		"":           `''`,
 	}
 	for in, want := range tests {
 		if got := Quote(in); got != want {

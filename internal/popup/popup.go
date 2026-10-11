@@ -8,6 +8,7 @@
 package popup
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -55,7 +56,7 @@ func target(session string) string {
 // once the popup has closed.
 func Open(s tmuxctl.Server, client, name, dir string, flags, command []string) error {
 	session := SessionName(name, client)
-	flagsJSON, err := json.Marshal(flags)
+	encodedFlags, err := encodeFlags(flags)
 	if err != nil {
 		return err
 	}
@@ -86,7 +87,7 @@ func Open(s tmuxctl.Server, client, name, dir string, flags, command []string) e
 		{"prefix2", "None"},
 		{"key-table", keyTable},
 		{optClient, client},
-		{optFlags, string(flagsJSON)},
+		{optFlags, encodedFlags},
 		{optOwner, token},
 	} {
 		cmds = append(cmds, []string{"set-option", "-t", target(session), o[0], o[1]})
@@ -119,8 +120,8 @@ func Resized(s tmuxctl.Server, client string) error {
 			continue
 		}
 		session, socket := row[0], row[3]
-		var flags []string
-		if err := json.Unmarshal([]byte(row[2]), &flags); err != nil {
+		flags, err := decodeFlags(row[2])
+		if err != nil {
 			continue
 		}
 
@@ -149,6 +150,26 @@ func Resized(s tmuxctl.Server, client string) error {
 		finish(s, closed, session, token)
 	}
 	return nil
+}
+
+// Flags are stored as base64 of their JSON: some tmux versions print option values with $, quotes
+// and control characters escaped, and the URL alphabet has none of those.
+func encodeFlags(flags []string) (string, error) {
+	data, err := json.Marshal(flags)
+	if err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(data), nil
+}
+
+func decodeFlags(s string) ([]string, error) {
+	data, err := base64.RawURLEncoding.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+	var flags []string
+	err = json.Unmarshal(data, &flags)
+	return flags, err
 }
 
 func newToken() string {

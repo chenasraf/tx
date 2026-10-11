@@ -101,7 +101,8 @@ func (s *sessions) load(r tmuxctl.Runner) error {
 			s.windows = append(s.windows, windowInfo{SessionID: row[0], ID: row[1], Index: row[2], Name: row[3], Panes: row[4]})
 		}
 	}
-	s.last = res[3].Text()
+	// tmux 3.4 prints option values with $ escaped, so a session id reads back as \$3
+	s.last = strings.TrimPrefix(res[3].Text(), `\`)
 	return nil
 }
 

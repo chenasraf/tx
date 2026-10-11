@@ -74,10 +74,15 @@ func TestConn_RunAndQuoting(t *testing.T) {
 	}
 	defer func() { _ = c.Close() }()
 
-	value := "x\"y\\z $HOME ~ #{session_name}; q\ttab\nline2 漢字 \x1b[1m"
+	// @want is set from argv, which tmux takes literally; @v goes through the command language.
+	// tmux compares them itself, since some versions print option values escaped.
+	value := "x\"y\\z $HOME ~ #{session_name}; q\ttab\nline2 漢字 \x1b[1m it's '' \"quoted\" \\n"
+	if _, err := s.Exec([]string{"set-option", "-g", "@want", value}); err != nil {
+		t.Fatal(err)
+	}
 	res, err := c.Run(
 		[]string{"set-option", "-g", "@v", value},
-		[]string{"show-options", "-gv", "@v"},
+		[]string{"display-message", "-p", "#{==:#{@v},#{@want}}"},
 		[]string{"bogus-command"},
 		[]string{"display-message", "-p", "#{session_name}"},
 	)
@@ -87,8 +92,8 @@ func TestConn_RunAndQuoting(t *testing.T) {
 	if res[0].Err != nil {
 		t.Errorf("set: %v", res[0].Err)
 	}
-	if got := res[1].Text(); got != value {
-		t.Errorf("round trip = %q, want %q", got, value)
+	if got := res[1].Text(); got != "1" {
+		t.Errorf("quoted value differs from the literal one")
 	}
 	if res[2].Err == nil {
 		t.Error("bogus command: expected an error")
