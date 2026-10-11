@@ -4,6 +4,7 @@ package picker
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -28,6 +29,21 @@ var ErrNotInTmux = errors.New("the picker runs inside tmux")
 // Sessions runs the session and window picker.
 func Sessions(opts Options) error {
 	return run(opts, func(client string, th theme.Theme) source { return newSessions(client, th) })
+}
+
+// Agents runs the agent pane picker. commands are process names or /regex/ patterns; mode is
+// MatchAuto, MatchName or MatchArgs.
+func Agents(opts Options, commands []string, mode string) error {
+	switch mode {
+	case "", MatchAuto, MatchName, MatchArgs:
+	default:
+		return fmt.Errorf("unknown agent match mode %q (want auto, name or args)", mode)
+	}
+	matchers, err := parseMatchers(commands)
+	if err != nil {
+		return err
+	}
+	return run(opts, func(client string, th theme.Theme) source { return newAgents(client, th, matchers, mode) })
 }
 
 func run(opts Options, newSource func(client string, th theme.Theme) source) error {

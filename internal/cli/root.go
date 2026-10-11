@@ -182,4 +182,5 @@ func init() {
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(popupCmd)
 	rootCmd.AddCommand(sessionsCmd)
+	rootCmd.AddCommand(agentsCmd)
 }

@@ -131,6 +131,60 @@ Bind it in tmux.conf:
 	},
 }
 
+var (
+	agentsFlags    pickerFlags
+	agentsCommands []string
+)
+
+var agentsCmd = &cobra.Command{
+	Use:   "agents",
+	Short: "Pick a pane running a coding agent, with a live preview",
+	Long: `Pick a pane running a coding agent (Claude Code by default), with a live preview of it.
+
+Keys: ↑↓/jk move, enter switch, 0-9 switch to the numbered pane, i work in the pane from the
+picker (^c back to the list, ^d close), / search, esc leave search, dd kill the agent, q quit.
+
+Which panes count as agents comes from --command, then .config.picker.agents.commands:
+process names (claude) match the pane's process; /regex/ entries match its foreground command
+line, for agents started through an interpreter (/gemini|codex/).
+
+Bind it in tmux.conf:
+  bind a run-shell "tx agents --popup --client #{client_name}"`,
+	Args: cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pc := pickerConfig()
+		if agentsFlags.popup {
+			var extra []string
+			if cmd.Flags().Changed("command") {
+				for _, c := range agentsCommands {
+					extra = append(extra, "--command", c)
+				}
+			}
+			return openInPopup(cmd, &agentsFlags, pc, "agents", extra)
+		}
+		refresh, err := refreshInterval(cmd, &agentsFlags, pc)
+		if err != nil {
+			return err
+		}
+		pct := pc.PreviewWidth.Agents
+		if pct <= 0 || pct >= 100 {
+			pct = 70
+		}
+		commands := pc.Agents.Commands
+		if cmd.Flags().Changed("command") || len(commands) == 0 {
+			commands = agentsCommands
+		}
+		return pickerError(picker.Agents(picker.Options{
+			Client:         agentsFlags.client,
+			Refresh:        refresh,
+			PreviewPercent: pct,
+			Colors:         pc.Colors,
+		}, commands, pc.Agents.Match))
+	},
+}
+
 func init() {
 	addPickerFlags(sessionsCmd, &sessionsFlags)
+	addPickerFlags(agentsCmd, &agentsFlags)
+	agentsCmd.Flags().StringArrayVar(&agentsCommands, "command", []string{"claude"}, "agent process name or /regex/ over the command line (repeatable)")
 }
