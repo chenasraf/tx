@@ -1,0 +1,36 @@
+{
+ "target": "%6",
+ "cols": 70,
+ "lines": 20,
+ "home": "/private/tmp/txfix/home",
+ "calls": [
+  {
+   "args": [
+    "display",
+    "-p",
+    "#{@thm_sky}\t#{@thm_overlay_0}\t#{@thm_overlay_1}\t#{@thm_blue}\t#{@thm_green}\t#{@thm_subtext_0}\t#{@thm_text}\t#{@thm_peach}\t#{@thm_red}"
+   ],
+   "stdout": "#89dceb\t#6c7086\t#7f849c\t#89b4fa\t#a6e3a1\t#a6adc8\t#cdd6f4\t#fab387\t#f38ba8\n"
+  },
+  {
+   "args": [
+    "display",
+    "-p",
+    "-t",
+    "%6",
+    "#{session_name}\t#{window_index}\t#{window_name}\t#{pane_current_path}\t#{pane_height}"
+   ],
+   "stdout": "split\t1\tsleep\t/private/tmp/txfix/home/proj\t14\n"
+  },
+  {
+   "args": [
+    "capture-pane",
+    "-p",
+    "-e",
+    "-t",
+    "%6"
+   ],
+   "stdout": "漢字テスト ok\nemoji 🎉 done\ncombining é x\ttab\nosc gone\n\n\n\n\n\n\n\n\n\n\n"
+  }
+ ]
+}

@@ -12,6 +12,11 @@ import (
 // ErrClosed is returned for commands on a connection that has ended.
 var ErrClosed = errors.New("tmux control connection closed")
 
+// Runner runs a batch of commands and returns one Result per command.
+type Runner interface {
+	Run(cmds ...[]string) ([]Result, error)
+}
+
 // Conn is a control-mode client. Commands are pipelined: Run writes a whole batch before reading
 // any reply, so a batch costs one round trip to the server however many commands it holds.
 type Conn struct {

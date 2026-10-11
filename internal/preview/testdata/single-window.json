@@ -1,0 +1,56 @@
+{
+ "target": "@1",
+ "cols": 80,
+ "lines": 24,
+ "home": "/private/tmp/txfix/home",
+ "calls": [
+  {
+   "args": [
+    "display",
+    "-p",
+    "#{@thm_sky}\t#{@thm_overlay_0}\t#{@thm_overlay_1}\t#{@thm_blue}\t#{@thm_green}\t#{@thm_subtext_0}\t#{@thm_text}\t#{@thm_peach}\t#{@thm_red}"
+   ],
+   "stdout": "#89dceb\t#6c7086\t#7f849c\t#89b4fa\t#a6e3a1\t#a6adc8\t#cdd6f4\t#fab387\t#f38ba8\n"
+  },
+  {
+   "args": [
+    "display",
+    "-p",
+    "-t",
+    "@1",
+    "#{session_id}\t#{window_id}\t#{window_width}\t#{window_height}\t#{window_zoomed_flag}"
+   ],
+   "stdout": "$1\t@1\t100\t30\t0\n"
+  },
+  {
+   "args": [
+    "list-windows",
+    "-t",
+    "$1",
+    "-F",
+    "#{session_id}\t#{window_id}\t#{window_index}\t#{window_name}"
+   ],
+   "stdout": "$1\t@1\t1\tsleep\n$1\t@2\t2\tsecond\n"
+  },
+  {
+   "args": [
+    "list-panes",
+    "-t",
+    "@1",
+    "-F",
+    "#{pane_id}\t#{pane_index}\t#{pane_left}\t#{pane_top}\t#{pane_width}\t#{pane_height}\t#{pane_active}\t#{pane_floating_flag}\t#{alternate_on}\t#{pane_current_command}"
+   ],
+   "stdout": "%1\t0\t0\t0\t100\t30\t1\t0\t0\tsleep\n"
+  },
+  {
+   "args": [
+    "capture-pane",
+    "-p",
+    "-e",
+    "-t",
+    "%1"
+   ],
+   "stdout": "$ ls\n\u001b[1m\u001b[34mdir\u001b[0m  file.txt  \u001b[32mrun.sh\u001b[39m\n$ echo hi\nhi\n$\n\u001b[31mred line one\u001b[39m\n\u001b[31mstill red\u001b[39m back\n\u001b[38;5;208morange\u001b[39m\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+  }
+ ]
+}
