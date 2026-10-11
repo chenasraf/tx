@@ -16,5 +16,6 @@ jobs:
     with:
       name: tx
       homebrew-tap-repo: chenasraf/homebrew-tap
+      test-command: bash .github/scripts/test.sh
     secrets:
       REPO_DISPATCH_PAT: ${{ secrets.REPO_DISPATCH_PAT }}
