@@ -30,6 +30,15 @@ func addPickerFlags(cmd *cobra.Command, f *pickerFlags) {
 	cmd.Flags().DurationVar(&f.refresh, "refresh", defaultRefresh, "how often the preview re-captures pane contents")
 	// pickers load only the global config, and no layouts
 	cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error { return nil }
+	_ = cmd.RegisterFlagCompletionFunc("client", completeClients)
+}
+
+func completeClients(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	res, err := tmuxctl.Current().Exec([]string{"list-clients", "-F", "#{client_name}"})
+	if err != nil || len(res) == 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	return res[0].Lines, cobra.ShellCompDirectiveNoFileComp
 }
 
 func pickerConfig() *config.PickerConfig {

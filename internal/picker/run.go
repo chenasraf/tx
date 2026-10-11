@@ -58,6 +58,10 @@ func run(opts Options, newSource func(client string, th theme.Theme) source) err
 	defer func() { _ = c.Close() }()
 
 	th, err := theme.Load(c, opts.Colors)
+	if errors.Is(err, tmuxctl.ErrClosed) {
+		// older tmux rejects the control client's flags
+		return errors.New("could not open a control connection to tmux (the picker needs tmux 3.2 or later)")
+	}
 	if err != nil {
 		return err
 	}

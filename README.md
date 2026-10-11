@@ -16,6 +16,9 @@ A tmux session manager that creates sessions from YAML configuration files.
 - Fuzzy finder for session selection
 - Config file includes (compose configs from multiple files)
 - Quick project session creation from configurable projects directory
+- Session/window picker and coding-agent pane picker with live previews of each window's real
+  pane layout
+- tmux popups that follow the terminal's size
 
 ---
 
@@ -99,6 +102,13 @@ tx rm <name> -c ~/local.yaml  # remove from a specific config file
 tx kill               # kill current session
 tx kill <name>        # kill specific session
 tx kill foo bar baz   # kill multiple sessions
+
+# Pickers with live previews (inside tmux)
+tx sessions           # sessions and windows
+tx agents             # panes running a coding agent
+
+# Popups that follow the terminal's size
+tx popup open <client> <name> <dir> [display-popup flags...] -- <command...>
 ```
 
 ### Global Flags
@@ -108,6 +118,62 @@ tx kill foo bar baz   # kill multiple sessions
 | `-V, --verbose`    | Verbose logging                                      |
 | `-d, --dry`        | Dry run (show commands without executing)            |
 | `-b, --background` | Create session in background without switching to it |
+
+### Pickers
+
+`tx sessions` lists your tmux sessions as a tree you can expand into windows, and `tx agents`
+lists the panes running a coding agent ([Claude Code](https://claude.com/claude-code) by default).
+Both show a live preview of the highlighted row: the window's real pane layout, scaled to fit,
+with each pane's contents in color, or the agent's pane.
+
+Bind them in `tmux.conf` to open in a popup:
+
+```tmux
+bind s run-shell "tx sessions --popup --client #{client_name}"
+bind a run-shell "tx agents --popup --client #{client_name}"
+# reopen popups at the new size when the terminal resizes
+set-hook -g client-resized[10] 'run-shell -b "tx popup resized #{q:hook_client}"'
+```
+
+| Key           | Sessions                                    | Agents                               |
+| ------------- | ------------------------------------------- | ------------------------------------ |
+| `↑↓` / `jk`   | Move                                        | Move                                 |
+| `→←` / `lh`   | Expand / collapse a session                 |                                      |
+| `enter`       | Switch to the session or window             | Switch to the pane                   |
+| `0`-`9`       | Switch to the numbered session              | Switch to the numbered pane          |
+| `i`           |                                             | Work in the pane without leaving     |
+| `/`           | Search                                      | Search                               |
+| `esc`         | Leave search, or quit                       | Leave search, or quit                |
+| `dd`          | Kill the session or window                  | Kill the agent (SIGTERM, then KILL)  |
+| `q`           | Quit                                        | Quit                                 |
+
+While working in an agent's pane with `i`, `ctrl-c` returns to the list and `ctrl-d` closes the
+picker. The list follows changes made elsewhere as they happen, and the preview re-captures the
+panes every second (`--refresh`).
+
+| Flag          | Description                                                                 |
+| ------------- | --------------------------------------------------------------------------- |
+| `--popup`     | Open in a popup on `--client` that follows the terminal's size              |
+| `--client`    | The client that `enter` switches (default: the one viewing the pane)        |
+| `--size`      | Popup size: `0` borderless full screen, `1`-`100` a bordered percentage     |
+| `--refresh`   | How often the preview re-captures pane contents (default: `1s`)             |
+| `--command`   | `tx agents` only: an agent to list, repeatable (see [Picker](#picker))      |
+
+`--size` falls back to `$TMUX_SWITCHER_SIZE`, then the `picker.size` setting. The pickers need
+tmux 3.2 or later.
+
+### Popups
+
+tmux sizes a popup once, when it opens. `tx popup open` runs the command in a hidden session and
+holds the popup around a client attached to it, so with the `client-resized` hook above, the popup
+is reopened at the new size while the command keeps running undisturbed:
+
+```tmux
+bind g run-shell "tx popup open #{q:client_name} lazygit #{q:pane_current_path} -w 90% -h 90% -b rounded -T ' lazygit ' -- lazygit"
+```
+
+Flags before `--` go to `display-popup`. A single-word command runs through the shell, as in tmux;
+several words run directly.
 
 ---
 
@@ -311,6 +377,7 @@ myproject:
 | `named_layouts`  | Reusable named layouts (see below)                                   |
 | `initial_window` | Window index to select on session creation (default: `1`, see below) |
 | `include`        | List of additional config files to merge (see below)                 |
+| `picker`         | Settings for `tx sessions` and `tx agents` (see below)               |
 
 #### Default Layout
 
@@ -401,6 +468,41 @@ myproject:
 
 Included files can themselves contain `include` lists (nested includes). Circular includes are
 detected and skipped. Later includes take precedence over earlier ones when merging.
+
+#### Picker
+
+Settings for [the pickers](#pickers). Flags given on the command line take precedence.
+
+```yaml
+.config:
+  picker:
+    size: 0 # popup size: 0 borderless full screen, 1-100 a bordered percentage
+    refresh: 1s # how often the preview re-captures pane contents
+    preview_width: # preview width, as a percentage of the popup
+      sessions: 78
+      agents: 70
+    agents:
+      commands: [claude, /gemini|codex/]
+      match: auto
+    colors: # override theme colors by role
+      sky: '#89dceb'
+```
+
+`agents.commands` lists what counts as an agent. A plain name matches the pane's process name. An
+entry in slashes is a regular expression over the pane's foreground command line, which finds
+agents started through an interpreter (`node .../gemini`). `agents.match` sets how entries are
+checked:
+
+| Value  | Behavior                                                                          |
+| ------ | --------------------------------------------------------------------------------- |
+| `auto` | Names against the process name, `/regex/` entries against the command line        |
+| `name` | Every entry against the process name                                              |
+| `args` | Every entry against the command line; a name also matches an interpreter's script |
+
+Colors come from `colors`, then the `@thm_*` options the
+[Catppuccin tmux theme](https://github.com/catppuccin/tmux) sets, then a built-in Catppuccin Mocha
+palette. The roles are `sky`, `overlay_0`, `overlay_1`, `blue`, `green`, `subtext_0`, `text`,
+`peach` and `red`.
 
 #### Shell Resolution Order
 
