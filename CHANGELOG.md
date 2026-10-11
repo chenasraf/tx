@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.6.0](https://github.com/chenasraf/tx/compare/v2.5.3...v2.6.0) (2026-10-11)
+
+
+### Features
+
+* **picker:** tx agents picker ([8d59e26](https://github.com/chenasraf/tx/commit/8d59e26a655992eb4c7400e8ba8f5c6533e47651))
+* **picker:** tx sessions picker ([c3c1ee6](https://github.com/chenasraf/tx/commit/c3c1ee62bfd99ffae0e338f2dec4a83f478e7069))
+* **popup:** resize-following popup launcher ([fa6aee6](https://github.com/chenasraf/tx/commit/fa6aee6b87a18db502e1936648c0e4fbe3c8361b))
+* **preview:** window and pane preview renderer ([28394f5](https://github.com/chenasraf/tx/commit/28394f53bb83459fc4e427402a8f5c6e032ffc66))
+* **tmuxctl:** control-mode client and batched exec ([fe01df4](https://github.com/chenasraf/tx/commit/fe01df4ffce1d9996d48e2ce2c4571d75f825ac8))
+
+
+### Bug Fixes
+
+* **tmuxctl:** portable quoting and output across tmux versions ([5c3104b](https://github.com/chenasraf/tx/commit/5c3104b477d41e76acf30ec6a31b0110f5e3dac5))
+
 ## [2.5.3](https://github.com/chenasraf/tx/compare/v2.5.2...v2.5.3) (2026-05-28)
 
 
