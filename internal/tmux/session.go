@@ -72,6 +72,19 @@ func SessionExists(opts exec.Opts, sessionName string) bool {
 	return code == 0
 }
 
+// CurrentSession returns the name of the session the caller is running in, or
+// an empty string when not inside tmux.
+func CurrentSession() string {
+	if os.Getenv("TMUX") == "" {
+		return ""
+	}
+	out, _, err := exec.GetCommandOutputSilent("tmux display-message -p '#{session_name}'")
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(out)
+}
+
 // AttachToSession attaches to or switches to a tmux session
 func AttachToSession(opts exec.Opts, sessionName string) error {
 	if os.Getenv("TMUX") != "" {

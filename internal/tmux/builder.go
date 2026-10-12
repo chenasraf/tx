@@ -3,6 +3,7 @@ package tmux
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/chenasraf/tx/internal/config"
 	"github.com/chenasraf/tx/internal/exec"
@@ -47,31 +48,16 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem, ba
 	// Create all windows. The "general" window above lands at baseIndex,
 	// so user windows start at baseIndex+1.
 	for i, window := range windows {
-		dir := window.Cwd
-		windowName := window.Name
-		if windowName == "" {
-			windowName = config.NameFix(filepath.Base(dir))
-		}
+		windowName := windowNameFor(window)
 
 		exec.Log(opts, "Creating window:", windowName)
 
 		// Create the window
 		commands = append(commands, fmt.Sprintf(
 			"tmux new-window -t %s:%d -n %s -c %s",
-			sessionName, baseIndex+1+i, windowName, dir,
+			sessionName, baseIndex+1+i, windowName, window.Cwd,
 		))
-
-		paneIndex := paneBaseIndex
-		paneCommands, timePanes := getPaneCommands(opts, window.Layout, sessionName, windowName, root, &paneIndex)
-		commands = append(commands, paneCommands...)
-
-		// Execute clock-mode for panes that have Time: true
-		for _, paneIdx := range timePanes {
-			commands = append(commands, fmt.Sprintf("tmux clock-mode -t %s:%s.%d", sessionName, windowName, paneIdx))
-		}
-
-		// Select first pane
-		commands = append(commands, fmt.Sprintf("tmux select-pane -t %s:%s.%d", sessionName, windowName, paneBaseIndex))
+		commands = append(commands, getWindowCommands(opts, window, sessionName+":"+windowName, root, paneBaseIndex)...)
 	}
 
 	// Select initial window — InitialWindow is a 0-based offset from the
@@ -92,9 +78,80 @@ func CreateFromConfig(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem, ba
 	return AttachToSession(opts, sessionName)
 }
 
+// AddToSession appends the config's windows to an existing session instead of
+// creating a new one. initial_window keeps its meaning relative to a created
+// session: 0 is the "general" window, which here is whichever window is
+// already active, so the selection stays put; N selects the Nth added window.
+// In background mode no window is selected.
+func AddToSession(opts exec.Opts, tmuxConfig config.ParsedTmuxConfigItem, sessionName string, background bool) error {
+	exec.Log(opts, "Config:", tmuxConfig)
+	exec.Log(opts, "Adding windows to session:", sessionName)
+
+	var targets []string
+	for _, window := range tmuxConfig.Windows {
+		windowName := windowNameFor(window)
+		exec.Log(opts, "Creating window:", windowName)
+
+		// Target the window by ID from here on: the session may already
+		// have windows with the same name.
+		createCmd := fmt.Sprintf(
+			"tmux new-window -d -t %s: -n %s -c %s -P -F '#{window_id}'",
+			sessionName, windowName, window.Cwd,
+		)
+		out, code, err := exec.GetCommandOutput(opts, createCmd)
+		if err == nil && code != 0 {
+			err = fmt.Errorf("exit status %d", code)
+		}
+		if err != nil {
+			return fmt.Errorf("failed to execute: %s: %w", createCmd, err)
+		}
+		target := strings.TrimSpace(out)
+		if target == "" {
+			// Dry run: nothing was created, so there is no ID to target.
+			target = sessionName + ":" + windowName
+		}
+		targets = append(targets, target)
+
+		paneBaseIndex := QueryTargetIndex(opts, target, "pane_index")
+		for _, command := range getWindowCommands(opts, window, target, tmuxConfig.Root, paneBaseIndex) {
+			if err := exec.RunCommand(opts, command); err != nil {
+				return fmt.Errorf("failed to execute: %s: %w", command, err)
+			}
+		}
+	}
+
+	if background || len(targets) == 0 || tmuxConfig.InitialWindow <= 0 {
+		return nil
+	}
+	selected := min(tmuxConfig.InitialWindow, len(targets)) - 1
+	return exec.RunCommand(opts, "tmux select-window -t "+targets[selected])
+}
+
+// windowNameFor returns the window's configured name, falling back to the
+// name of its directory.
+func windowNameFor(window config.ParsedTmuxWindow) string {
+	if window.Name != "" {
+		return window.Name
+	}
+	return config.NameFix(filepath.Base(window.Cwd))
+}
+
+// getWindowCommands generates the commands that lay out the panes of an
+// already-created window, addressed by target.
+func getWindowCommands(opts exec.Opts, window config.ParsedTmuxWindow, target, rootDir string, paneBaseIndex int) []string {
+	paneIndex := paneBaseIndex
+	commands, timePanes := getPaneCommands(opts, window.Layout, target, rootDir, &paneIndex)
+
+	for _, paneIdx := range timePanes {
+		commands = append(commands, fmt.Sprintf("tmux clock-mode -t %s.%d", target, paneIdx))
+	}
+
+	return append(commands, fmt.Sprintf("tmux select-pane -t %s.%d", target, paneBaseIndex))
+}
+
 // getPaneCommands generates tmux commands for pane layout
 // Returns the commands and a list of pane indices that should show time (clock-mode)
-func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, windowName, rootDir string, paneIndex *int) ([]string, []int) {
+func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, target, rootDir string, paneIndex *int) ([]string, []int) {
 	var commands []string
 	var timePanes []int
 
@@ -111,8 +168,8 @@ func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, wi
 		if cmd != "" {
 			exec.Log(opts, "Sending keys:", cmd)
 			commands = append(commands, fmt.Sprintf(
-				"tmux send-keys -t %s:%s %s Enter",
-				sessionName, windowName, cmd,
+				"tmux send-keys -t %s %s Enter",
+				target, cmd,
 			))
 		}
 	}
@@ -135,8 +192,8 @@ func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, wi
 		*paneIndex++
 
 		splitCmd := fmt.Sprintf(
-			"tmux split-window -%s -t %s:%s -c %s",
-			direction, sessionName, windowName, cwd,
+			"tmux split-window -%s -t %s -c %s",
+			direction, target, cwd,
 		)
 		if pane.Split.Size > 0 && pane.Split.Size <= 100 {
 			splitCmd += fmt.Sprintf(" -p %d", pane.Split.Size)
@@ -146,7 +203,7 @@ func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, wi
 		// Handle child pane
 		if pane.Split.Child != nil {
 			exec.Log(opts, "Handling child pane:", pane.Split.Child)
-			childCommands, childTimePanes := getPaneCommands(opts, *pane.Split.Child, sessionName, windowName, rootDir, paneIndex)
+			childCommands, childTimePanes := getPaneCommands(opts, *pane.Split.Child, target, rootDir, paneIndex)
 			commands = append(commands, childCommands...)
 			timePanes = append(timePanes, childTimePanes...)
 		}
@@ -154,8 +211,8 @@ func getPaneCommands(opts exec.Opts, pane config.TmuxPaneLayout, sessionName, wi
 		// Handle zoom
 		if pane.Zoom {
 			commands = append(commands, fmt.Sprintf(
-				"tmux resize-pane -t %s:%s -Z",
-				sessionName, windowName,
+				"tmux resize-pane -t %s -Z",
+				target,
 			))
 		}
 	}

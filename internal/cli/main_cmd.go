@@ -51,6 +51,10 @@ func runMain(cmd *cobra.Command, args []string) error {
 
 	parsed := config.ParseConfig(actualKey, item)
 
+	if addWindows {
+		return addToCurrentSession(opts, parsed)
+	}
+
 	// Check if session exists
 	if tmux.SessionExists(opts, parsed.Name) {
 		if background {

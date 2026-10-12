@@ -46,6 +46,7 @@ func completeProjectNames(cmd *cobra.Command, args []string, toComplete string) 
 func init() {
 	prjCmd.Flags().BoolVarP(&prjSave, "save", "s", false, "Save the session in config file")
 	prjCmd.Flags().StringVarP(&prjConfigFile, "config", "c", "", "Save to a specific config file")
+	prjCmd.Flags().BoolVarP(&addWindows, "add", "a", false, addFlagUsage)
 }
 
 // ErrNoProjectsPath is returned when projects_path is not configured
@@ -133,6 +134,10 @@ func runPrj(cmd *cobra.Command, args []string) error {
 		if err := config.AddSimpleConfigToFile(parsed, prjConfigFile, opts.Dry); err != nil {
 			return err
 		}
+	}
+
+	if addWindows {
+		return addToCurrentSession(opts, parsed)
 	}
 
 	// Create session

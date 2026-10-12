@@ -15,7 +15,7 @@ func TestGetPaneCommands_NoSplit(t *testing.T) {
 	}
 
 	paneIndex := 0
-	commands, _ := getPaneCommands(opts, pane, "testsession", "testwindow", "/tmp", &paneIndex)
+	commands, _ := getPaneCommands(opts, pane, "testsession:testwindow", "/tmp", &paneIndex)
 
 	// No split, no cmd = no commands
 	if len(commands) != 0 {
@@ -31,7 +31,7 @@ func TestGetPaneCommands_WithCmd(t *testing.T) {
 	}
 
 	paneIndex := 0
-	commands, _ := getPaneCommands(opts, pane, "testsession", "testwindow", "/tmp", &paneIndex)
+	commands, _ := getPaneCommands(opts, pane, "testsession:testwindow", "/tmp", &paneIndex)
 
 	if len(commands) != 1 {
 		t.Fatalf("expected 1 command, got %d: %v", len(commands), commands)
@@ -56,7 +56,7 @@ func TestGetPaneCommands_WithSplit(t *testing.T) {
 	}
 
 	paneIndex := 0
-	commands, _ := getPaneCommands(opts, pane, "testsession", "testwindow", "/tmp", &paneIndex)
+	commands, _ := getPaneCommands(opts, pane, "testsession:testwindow", "/tmp", &paneIndex)
 
 	if len(commands) < 1 {
 		t.Fatalf("expected at least 1 command, got %d", len(commands))
@@ -81,7 +81,7 @@ func TestGetPaneCommands_WithVerticalSplit(t *testing.T) {
 	}
 
 	paneIndex := 0
-	commands, _ := getPaneCommands(opts, pane, "testsession", "testwindow", "/tmp", &paneIndex)
+	commands, _ := getPaneCommands(opts, pane, "testsession:testwindow", "/tmp", &paneIndex)
 
 	if len(commands) < 1 {
 		t.Fatalf("expected at least 1 command, got %d", len(commands))
@@ -107,7 +107,7 @@ func TestGetPaneCommands_WithZoom(t *testing.T) {
 	}
 
 	paneIndex := 0
-	commands, _ := getPaneCommands(opts, pane, "testsession", "testwindow", "/tmp", &paneIndex)
+	commands, _ := getPaneCommands(opts, pane, "testsession:testwindow", "/tmp", &paneIndex)
 
 	// Should have a resize-pane -Z command
 	found := false
@@ -142,7 +142,7 @@ func TestGetPaneCommands_NestedSplits(t *testing.T) {
 	}
 
 	paneIndex := 0
-	commands, _ := getPaneCommands(opts, pane, "testsession", "testwindow", "/tmp", &paneIndex)
+	commands, _ := getPaneCommands(opts, pane, "testsession:testwindow", "/tmp", &paneIndex)
 
 	// Should have at least 2 split commands
 	splitCount := 0
@@ -170,7 +170,7 @@ func TestGetPaneCommands_DefaultDirection(t *testing.T) {
 	}
 
 	paneIndex := 0
-	commands, _ := getPaneCommands(opts, pane, "testsession", "testwindow", "/tmp", &paneIndex)
+	commands, _ := getPaneCommands(opts, pane, "testsession:testwindow", "/tmp", &paneIndex)
 
 	if len(commands) < 1 {
 		t.Fatalf("expected at least 1 command, got %d", len(commands))
@@ -190,7 +190,7 @@ func TestGetPaneCommands_WithClock(t *testing.T) {
 	}
 
 	paneIndex := 0
-	_, clockPanes := getPaneCommands(opts, pane, "testsession", "testwindow", "/tmp", &paneIndex)
+	_, clockPanes := getPaneCommands(opts, pane, "testsession:testwindow", "/tmp", &paneIndex)
 
 	if len(clockPanes) != 1 {
 		t.Errorf("expected 1 clock pane, got %d", len(clockPanes))
@@ -221,7 +221,7 @@ func TestGetPaneCommands_NestedClock(t *testing.T) {
 	}
 
 	paneIndex := 0
-	_, clockPanes := getPaneCommands(opts, pane, "testsession", "testwindow", "/tmp", &paneIndex)
+	_, clockPanes := getPaneCommands(opts, pane, "testsession:testwindow", "/tmp", &paneIndex)
 
 	if len(clockPanes) != 1 {
 		t.Errorf("expected 1 clock pane, got %d", len(clockPanes))
@@ -284,5 +284,49 @@ func TestCreateFromConfig_MultipleWindows(t *testing.T) {
 	err := CreateFromConfig(opts, tmuxConfig, false)
 	if err != nil {
 		t.Errorf("expected no error in dry mode, got %v", err)
+	}
+}
+
+func TestAddToSession_DryRun(t *testing.T) {
+	opts := exec.Opts{Verbose: false, Dry: true}
+
+	tmuxConfig := config.ParsedTmuxConfigItem{
+		Name:          "testproject",
+		Root:          "/tmp/testproject",
+		InitialWindow: 1,
+		Windows: []config.ParsedTmuxWindow{
+			{Cwd: "/tmp/testproject/src", Layout: config.TmuxPaneLayout{Cwd: "/tmp/testproject/src"}},
+			{Name: "lib", Cwd: "/tmp/testproject/lib", Layout: config.TmuxPaneLayout{Cwd: "/tmp/testproject/lib"}},
+		},
+	}
+
+	if err := AddToSession(opts, tmuxConfig, "current", false); err != nil {
+		t.Errorf("expected no error in dry mode, got %v", err)
+	}
+}
+
+func TestGetWindowCommands_TargetsWindow(t *testing.T) {
+	opts := exec.Opts{Verbose: false, Dry: true}
+	window := config.ParsedTmuxWindow{
+		Layout: config.TmuxPaneLayout{
+			Clock: true,
+			Split: &config.TmuxSplitLayout{Direction: "v"},
+		},
+	}
+
+	commands := getWindowCommands(opts, window, "@7", "/tmp", 1)
+
+	want := []string{
+		"tmux split-window -v -t @7 -c /tmp",
+		"tmux clock-mode -t @7.1",
+		"tmux select-pane -t @7.1",
+	}
+	if len(commands) != len(want) {
+		t.Fatalf("expected %d commands, got %d: %v", len(want), len(commands), commands)
+	}
+	for i := range want {
+		if commands[i] != want[i] {
+			t.Errorf("command %d: expected %q, got %q", i, want[i], commands[i])
+		}
 	}
 }

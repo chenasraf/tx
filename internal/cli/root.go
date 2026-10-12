@@ -8,6 +8,7 @@ import (
 	"github.com/chenasraf/tx/internal/config"
 	"github.com/chenasraf/tx/internal/exec"
 	"github.com/chenasraf/tx/internal/fzf"
+	"github.com/chenasraf/tx/internal/tmux"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +20,20 @@ var (
 	verbose    bool
 	dry        bool
 	background bool
+	addWindows bool
 )
+
+const addFlagUsage = "Add the windows to the current session instead of creating a new one"
+
+// addToCurrentSession appends the config's windows to the session tx is
+// running in.
+func addToCurrentSession(opts exec.Opts, parsed config.ParsedTmuxConfigItem) error {
+	session := tmux.CurrentSession()
+	if session == "" {
+		return NewUserError("--add must be run inside a tmux session")
+	}
+	return tmux.AddToSession(opts, parsed, session, background)
+}
 
 // GetOpts returns the current execution options
 func GetOpts() exec.Opts {
@@ -169,6 +183,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&dry, "dry", "d", false, "Dry run (log commands, don't execute)")
 	rootCmd.PersistentFlags().BoolVarP(&background, "background", "B", false, "Create session in background without attaching")
 	rootCmd.Flags().BoolP("version", "v", false, "Print version")
+	rootCmd.Flags().BoolVarP(&addWindows, "add", "a", false, addFlagUsage)
 
 	// Add subcommands
 	rootCmd.AddCommand(listCmd)

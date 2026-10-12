@@ -90,6 +90,10 @@ tx -b my-session
 tx create -b
 tx prj -b myproject
 
+# Add the windows to the current session instead of creating a new one (inside tmux)
+tx -a my-session
+tx prj -a myproject
+
 # Attach to existing session
 tx attach [name]
 
@@ -426,6 +430,9 @@ myproject:
 The `initial_window` setting controls which window is selected when a new session is created. Window
 `0` is the "general" window (created automatically with the session), and configured windows start
 at index `1`. The default is `1` (the first configured window).
+
+With `--add`, no "general" window is created: `0` keeps the current window selected, and `N` selects
+the `N`th added window.
 
 This can be set globally under `.config` and overridden per session:
 
