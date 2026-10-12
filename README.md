@@ -86,9 +86,9 @@ tx prj [name]
 tx prj -s             # save to config
 
 # Create session in background (don't switch to it)
-tx -b my-session
-tx create -b
-tx prj -b myproject
+tx -B my-session
+tx create -B
+tx prj -B myproject
 
 # Add the windows to the current session instead of creating a new one (inside tmux)
 tx -a my-session
@@ -121,7 +121,7 @@ tx popup open <client> <name> <dir> [display-popup flags...] -- <command...>
 | ------------------ | ---------------------------------------------------- |
 | `-V, --verbose`    | Verbose logging                                      |
 | `-d, --dry`        | Dry run (show commands without executing)            |
-| `-b, --background` | Create session in background without switching to it |
+| `-B, --background` | Create session in background without switching to it |
 
 ### Pickers
 
@@ -563,7 +563,7 @@ tx create -r ~/myproject -w src -w lib -w test
 tx create -r ~/myproject -s
 
 # Create in background (don't switch to it)
-tx create -b -r ~/myproject
+tx create -B -r ~/myproject
 ```
 
 ### Project Workflow
