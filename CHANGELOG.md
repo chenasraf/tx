@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.0](https://github.com/chenasraf/tx/compare/v2.6.0...v2.7.0) (2026-10-13)
+
+
+### Features
+
+* **cli:** --add windows to the current session ([706985f](https://github.com/chenasraf/tx/commit/706985f61ac157186880295f15202de066a76330))
+
 ## [2.6.0](https://github.com/chenasraf/tx/compare/v2.5.3...v2.6.0) (2026-10-11)
 
 
