@@ -1,6 +1,7 @@
 package tmux
 
 import (
+	"io"
 	"os"
 	"testing"
 
@@ -47,6 +48,33 @@ func TestAttachToSession_OutsideTmux(t *testing.T) {
 	// In dry mode, should succeed without actually running
 	if err != nil {
 		t.Errorf("expected no error in dry mode, got %v", err)
+	}
+}
+
+func TestAttachToSession_Client(t *testing.T) {
+	origTmux := os.Getenv("TMUX")
+	defer func() { _ = os.Setenv("TMUX", origTmux) }()
+
+	// a binding's popup may run outside tmux entirely; the client still gets switched
+	_ = os.Unsetenv("TMUX")
+
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	origStdout := os.Stdout
+	os.Stdout = w
+	err = AttachToSession(exec.Opts{Dry: true, Client: "/dev/ttys004"}, "testsession")
+	os.Stdout = origStdout
+	_ = w.Close()
+	if err != nil {
+		t.Fatalf("expected no error in dry mode, got %v", err)
+	}
+	out, _ := io.ReadAll(r)
+
+	want := "$ tmux switch-client -c /dev/ttys004 -t testsession\n"
+	if string(out) != want {
+		t.Errorf("expected %q, got %q", want, out)
 	}
 }
 

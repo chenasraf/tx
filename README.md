@@ -94,6 +94,11 @@ tx prj -B myproject
 tx -a my-session
 tx prj -a myproject
 
+# Act on a given tmux client: switch it, and -a adds to its session. Bindings need this when tx
+# runs in a popup, e.g. tx popup open #{q:client_name} tx ~ -- tx --client #{q:client_name}
+tx --client /dev/ttys004 my-session
+tx prj --client /dev/ttys004 -a myproject
+
 # Attach to existing session
 tx attach [name]
 

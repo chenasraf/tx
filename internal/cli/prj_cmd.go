@@ -47,6 +47,8 @@ func init() {
 	prjCmd.Flags().BoolVarP(&prjSave, "save", "s", false, "Save the session in config file")
 	prjCmd.Flags().StringVarP(&prjConfigFile, "config", "c", "", "Save to a specific config file")
 	prjCmd.Flags().BoolVarP(&addWindows, "add", "a", false, addFlagUsage)
+	prjCmd.Flags().StringVar(&client, "client", "", clientFlagUsage)
+	_ = prjCmd.RegisterFlagCompletionFunc("client", completeClients)
 }
 
 // ErrNoProjectsPath is returned when projects_path is not configured

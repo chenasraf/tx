@@ -72,13 +72,16 @@ func SessionExists(opts exec.Opts, sessionName string) bool {
 	return code == 0
 }
 
-// CurrentSession returns the name of the session the caller is running in, or
-// an empty string when not inside tmux.
-func CurrentSession() string {
-	if os.Getenv("TMUX") == "" {
+// CurrentSession returns the name of the session opts.Client is viewing, or
+// without one the session the caller is running in; empty when there is none.
+func CurrentSession(opts exec.Opts) string {
+	cmd := "tmux display-message -p '#{session_name}'"
+	if opts.Client != "" {
+		cmd = "tmux display-message -p -c " + opts.Client + " '#{client_session}'"
+	} else if os.Getenv("TMUX") == "" {
 		return ""
 	}
-	out, _, err := exec.GetCommandOutputSilent("tmux display-message -p '#{session_name}'")
+	out, _, err := exec.GetCommandOutputSilent(cmd)
 	if err != nil {
 		return ""
 	}
@@ -87,6 +90,9 @@ func CurrentSession() string {
 
 // AttachToSession attaches to or switches to a tmux session
 func AttachToSession(opts exec.Opts, sessionName string) error {
+	if opts.Client != "" {
+		return exec.RunCommand(opts, "tmux switch-client -c "+opts.Client+" -t "+sessionName)
+	}
 	if os.Getenv("TMUX") != "" {
 		// Already inside tmux, use switch-client
 		return exec.RunCommand(opts, "tmux switch-client -t "+sessionName)

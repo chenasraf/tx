@@ -11,6 +11,9 @@ import (
 type Opts struct {
 	Verbose bool
 	Dry     bool
+	// Client is the tmux client to switch and whose session counts as current. Empty means the
+	// caller's own, which tmux can't tell from inside a popup or anything else run from a binding.
+	Client string
 }
 
 // DefaultShells is the list of shells to try in order of preference

@@ -21,16 +21,20 @@ var (
 	dry        bool
 	background bool
 	addWindows bool
+	client     string
 )
 
-const addFlagUsage = "Add the windows to the current session instead of creating a new one"
+const (
+	addFlagUsage    = "Add the windows to the current session instead of creating a new one"
+	clientFlagUsage = "tmux client to switch, and whose session --add adds to (default: the one running tx)"
+)
 
 // addToCurrentSession appends the config's windows to the session tx is
-// running in.
+// running in, or the one --client is viewing.
 func addToCurrentSession(opts exec.Opts, parsed config.ParsedTmuxConfigItem) error {
-	session := tmux.CurrentSession()
+	session := tmux.CurrentSession(opts)
 	if session == "" {
-		return NewUserError("--add must be run inside a tmux session")
+		return NewUserError("--add must be run inside a tmux session, or given --client")
 	}
 	return tmux.AddToSession(opts, parsed, session, background)
 }
@@ -40,6 +44,7 @@ func GetOpts() exec.Opts {
 	return exec.Opts{
 		Verbose: verbose,
 		Dry:     dry,
+		Client:  client,
 	}
 }
 
@@ -184,6 +189,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&background, "background", "B", false, "Create session in background without attaching")
 	rootCmd.Flags().BoolP("version", "v", false, "Print version")
 	rootCmd.Flags().BoolVarP(&addWindows, "add", "a", false, addFlagUsage)
+	rootCmd.Flags().StringVar(&client, "client", "", clientFlagUsage)
+	_ = rootCmd.RegisterFlagCompletionFunc("client", completeClients)
 
 	// Add subcommands
 	rootCmd.AddCommand(listCmd)
