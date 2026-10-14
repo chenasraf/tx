@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.8.0](https://github.com/chenasraf/tx/compare/v2.7.0...v2.8.0) (2026-10-14)
+
+
+### Features
+
+* **cli:** --client for tx and tx prj ([f629fbf](https://github.com/chenasraf/tx/commit/f629fbf134e3376a028973d4c21b3d73417193f1))
+
 ## [2.7.0](https://github.com/chenasraf/tx/compare/v2.6.0...v2.7.0) (2026-10-13)
 
 
