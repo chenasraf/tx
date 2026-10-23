@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.8.1](https://github.com/chenasraf/tx/compare/v2.8.0...v2.8.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** require go 1.26.10 ([8e14bcf](https://github.com/chenasraf/tx/commit/8e14bcf68fab38ddd1d1c758407d178753be59b7))
+* **deps:** require go 1.27.3 ([554ba9a](https://github.com/chenasraf/tx/commit/554ba9ac7e92ddd67c44ad699df7b6cfa9c16ae5))
+
 ## [2.8.0](https://github.com/chenasraf/tx/compare/v2.7.0...v2.8.0) (2026-10-14)
 
 
